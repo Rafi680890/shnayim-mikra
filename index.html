@@ -219,6 +219,7 @@ button.vnum{cursor:pointer}
 .cmt{border-radius:14px;padding:12px 14px;margin:10px 0;line-height:1.85;font-size:19px;background:var(--hld)}
 .cmt .src{font-size:13px;font-weight:800;opacity:.75;display:block}
 .cmt h4{margin:2px 0 4px;font-size:22px;font-family:"TanachFont",serif}
+.mk.two{border-top:1px dashed var(--line);margin-top:2px;padding-inline-start:2.2em}
 </style>
 </head>
 <body>
@@ -247,7 +248,7 @@ function validateBm() {
   const rr = srcOk && Number.isInteger(b.a) && b.a >= 0 && b.a <= 6 ? (b.k[0] === "w" ? SCH[b.k.slice(2)] : P[+b.k.slice(2)]).r[b.a] : null;
   if (!(rr && Number.isInteger(b.c) && Number.isInteger(b.v) && (b.c > rr[1] || b.v >= rr[2]) && (b.c < rr[3] || b.v <= rr[4]) && b.c >= rr[1] && b.c <= rr[3] && b.v >= 1)) S.bm = null;
 }
-let S = { v: 1, done: {}, bm: null, hintBm: false, rashi: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
+let S = { v: 1, done: {}, bm: null, hintBm: false, rashi: true, twice: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
 try {
   const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw 0;
@@ -260,7 +261,7 @@ try {
   S.hintBm = !!S.hintBm;
   if (!(Number.isFinite(S.fs) && S.fs >= 16 && S.fs <= 48)) S.fs = 26;
   if (!["light", "sepia", "dark", "auto"].includes(S.theme)) S.theme = "light";
-  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.targum = S.targum !== false;
+  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.twice = S.twice !== false; S.targum = S.targum !== false;
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 const dk = (w, a) => w + ":" + a;
@@ -545,7 +546,7 @@ function readView() {
       const [m, g] = TX[bi][c - 1][v - 1], rc = S.rashi && RS[bi] ? RS[bi][c - 1][v - 1] : null, pb = m.endsWith("\n"), mt = (S.taamim ? m : stripT(m)).trim();
       if (v === 1 || (c === r[1] && v === from)) t += `<div class="chh">פרק ${gem(c)}</div>`;
       const on = bmAt(route, c, v);
-      t += `<div class="vs ${on ? "bm" : ""}" id="v${c}_${v}"><div class="mk"><button class="vnum ${on ? "on" : ""}" data-bm="${c}:${v}" aria-pressed="${on}" aria-label="סימניה: עד כאן למדתי, פסוק ${gem(v)}">${gem(v)}${BMI}</button>${verseHTML(mt, rc)}</div>${S.targum ? `<div class="tg"><i>תרגום</i>${g}</div>` : ""}</div>${pb ? '<div class="pbr"></div>' : ""}`;
+      t += `<div class="vs ${on ? "bm" : ""}" id="v${c}_${v}"><div class="mk"><button class="vnum ${on ? "on" : ""}" data-bm="${c}:${v}" aria-pressed="${on}" aria-label="סימניה: עד כאן למדתי, פסוק ${gem(v)}">${gem(v)}${BMI}</button>${verseHTML(mt, rc)}</div>${S.twice ? `<div class="mk two" aria-label="קריאה שנייה">${verseHTML(mt, null)}</div>` : ""}${S.targum ? `<div class="tg"><i>תרגום</i>${g}</div>` : ""}</div>${pb ? '<div class="pbr"></div>' : ""}`;
       if (on) t += `<div class="bmline" id="bmline"><span>🔖 עד כאן למדתי</span><button data-bmclear>הסר</button></div>`;
     }
   }
@@ -588,6 +589,7 @@ function settingsHTML() {
   <div class="row"><span>גודל הכתב</span><div class="seg"><button data-fs="-2">א−</button><button class="on" disabled>${S.fs}</button><button data-fs="2">א+</button></div></div>
   <div class="row"><span>טעמי המקרא</span>${sw("taamim", S.taamim)}</div>
   <div class="row"><span>פירוש רש״י <i style="display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--hld);vertical-align:middle"></i></span>${sw("rashi", S.rashi)}</div>
+  <div class="row"><span>כל פסוק פעמיים <small style="color:var(--mute)">(שניים מקרא)</small></span>${sw("twice", S.twice)}</div>
   <div class="row"><span>תרגום אונקלוס אחרי כל פסוק</span>${sw("targum", S.targum)}</div>
   <div class="row"><span>היום מתחלף בשקיעה <small style="color:var(--mute)">(כמו התאריך העברי)</small></span>${sw("sunset", S.sunset)}</div>
   <div style="margin-top:12px;font-weight:700">מצב תצוגה</div>
