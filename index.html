@@ -219,7 +219,9 @@ button.vnum{cursor:pointer}
 .cmt{border-radius:14px;padding:12px 14px;margin:10px 0;line-height:1.85;font-size:19px;background:var(--hld)}
 .cmt .src{font-size:13px;font-weight:800;opacity:.75;display:block}
 .cmt h4{margin:2px 0 4px;font-size:22px;font-family:"TanachFont",serif}
-.mk.two{border-top:1px dashed var(--line);margin-top:2px;padding-inline-start:2.2em}
+.x2{font-family:"UIFont",system-ui,sans-serif;font-size:.46em;font-weight:800;color:var(--tgb);background:var(--tg);border-radius:8px;padding:3px 8px;margin-inline-end:8px;vertical-align:middle;white-space:nowrap}
+.toast button{margin-inline-start:14px;border:0;background:#fff;color:#14305a;border-radius:999px;padding:6px 14px;font-weight:800}
+.vnum.x2{color:var(--tgb);background:var(--tg);border-color:var(--tgb);font-weight:800}
 </style>
 </head>
 <body>
@@ -313,10 +315,12 @@ const today = () => {
   return new Date(y, m - 1, d + (todayShifted ? 1 : 0), 12);
 };
 const $ = s => document.querySelector(s);
-function toast(t) {
-  const e = $("#toast"); e.textContent = t; e.classList.add("show");
-  clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("show"), 1800);
+function toast(t, act) {
+  const e = $("#toast"); e.textContent = t; e.style.pointerEvents = act ? "auto" : "none";
+  if (act) { const b = document.createElement("button"); b.textContent = act; b.setAttribute("data-undo", ""); e.appendChild(b); }
+  e.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => { e.classList.remove("show"); e.style.pointerEvents = "none"; }, act ? 7000 : 1800);
 }
+let lastBm = null;
 const I = {
   home: '<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>',
   chart: '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
@@ -466,9 +470,9 @@ function dayView() {
   let body = "";
   if (!s) body = `<div class="card" style="text-align:center">אין נתוני לוח לתאריך הזה (הלוח כולל את התקופה ${hebFmt(parseISO(MINW))} עד ${hebFmt(parseISO(MAXW))}).<div class="nav"><button class="p" data-today>חזרה להיום</button></div></div>`;
   else {
-    const r = s.r[a], done = isDone(w, a);
-    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${refText(r, true)}</b><span>${vcount(r)} פסוקים</span></div>
-      <div class="btns"><button class="btn read" data-r="w:${w}:${a}"><span class="ic">${I.openbook}</span>לקריאה</button><button class="btn chk ${done ? "on" : ""}" data-toggle="${w}:${a}">${I.check} ${done ? "למדתי" : "סמן כנלמד"}</button></div></div>`;
+    const r = s.r[a], done = isDone(w, a), bmH = S.bm && S.bm.k === "w:" + w && S.bm.a === a;
+    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${refText(r, true)}</b><span>${bmH ? `🔖 עצרת בפסוק ${gem(S.bm.v)}` : `${vcount(r)} פסוקים`}</span></div>
+      <div class="btns"><button class="btn read" data-r="w:${w}:${a}"${bmH ? " data-resume" : ""}><span class="ic">${I.openbook}</span>${bmH ? "המשך מפסוק " + gem(S.bm.v) : "לקריאה"}</button><button class="btn chk ${done ? "on" : ""}" data-toggle="${w}:${a}">${I.check} ${done ? "למדתי" : "סמן כנלמד"}</button></div></div>`;
     const wd = weekDone(w), pct = Math.round(wd / 7 * 100), t = totals();
     body += `<div class="card"><h3 class="sh">${I.cal} ${ttl(s)} · כל העליות</h3>` +
       s.r.map((r, i) => `<button class="wl ${i === a ? "sel" : ""} ${isDone(w, i) ? "done" : ""}" data-day="${iso(dateOf(w, i))}"><span class="n">${isDone(w, i) ? "✓" : i + 1}</span><span class="x1"><b>יום ${DAYN[i]} · עלייה ${ALN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span><span class="go">‹</span></button>`).join("") + `</div>
@@ -479,7 +483,7 @@ function dayView() {
   let bmc = "";
   if (S.bm) {
     const k = S.bm.k, rt = k[0] === "w" ? { w: k.slice(2), a: S.bm.a } : { p: +k.slice(2), a: S.bm.a }, bs = srcOf(rt);
-    bmc = `<div class="card bmcard"><div class="ico">${BMI}</div><div class="tx"><small>המשך מהמקום שעצרת</small><b>${ttl(bs)} · עלייה ${ALN[S.bm.a]}</b><span>${B[bs.r[S.bm.a][0]].n} ${gem(S.bm.c)}:${gem(S.bm.v)}</span></div><button class="go" data-r="${k[0]}:${k.slice(2)}:${S.bm.a}">המשך ללמוד ‹</button></div>`;
+    bmc = `<div class="card bmcard"><div class="ico">${BMI}</div><div class="tx"><small>המשך מהמקום שעצרת</small><b>${ttl(bs)} · עלייה ${ALN[S.bm.a]}</b><span>${B[bs.r[S.bm.a][0]].n} ${gem(S.bm.c)}:${gem(S.bm.v)}</span></div><button class="go" data-r="${k[0]}:${k.slice(2)}:${S.bm.a}" data-resume>המשך ללמוד ‹</button></div>`;
   }
   return `<div class="hero"><div class="htop"><div class="logo"><img src="logo.png" alt="קהילת אבני החושן"></div><div class="hded"><div><small>לעילוי נשמת</small><b>ר׳ אברהם בן ברכה</b></div><i></i><div><small>ולעילוי נשמת</small><b>חנה בת חג׳ילה</b></div><i></i><div><small>ולעילוי נשמת</small><b>שלום שלומי בן חנה</b></div></div></div><h1>שניים מקרא <b>ואחד תרגום</b></h1><p>כל התורה · שבע עליות · מקרא עם טעמים ותרגום אונקלוס אחרי כל פסוק</p><div class="orn">✦</div></div>
   <div class="card datecard"><div class="he">${hebFmt(d)}</div><div class="gr">${wdFmt.format(d)} · ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}</div>
@@ -545,9 +549,10 @@ function readView() {
     for (let v = from; v <= to; v++) {
       const [m, g] = TX[bi][c - 1][v - 1], rc = S.rashi && RS[bi] ? RS[bi][c - 1][v - 1] : null, pb = m.endsWith("\n"), mt = (S.taamim ? m : stripT(m)).trim();
       if (v === 1 || (c === r[1] && v === from)) t += `<div class="chh">פרק ${gem(c)}</div>`;
-      const on = bmAt(route, c, v);
-      t += `<div class="vs ${on ? "bm" : ""}" id="v${c}_${v}"><div class="mk"><button class="vnum ${on ? "on" : ""}" data-bm="${c}:${v}" aria-pressed="${on}" aria-label="סימניה: עד כאן למדתי, פסוק ${gem(v)}">${gem(v)}${BMI}</button>${verseHTML(mt, rc)}</div>${S.twice ? `<div class="mk two" aria-label="קריאה שנייה">${verseHTML(mt, null)}</div>` : ""}${S.targum ? `<div class="tg"><i>תרגום</i>${g}</div>` : ""}</div>${pb ? '<div class="pbr"></div>' : ""}`;
+      const on = bmAt(route, c, v), rm = !on && route.resume && route.resume.k === bmKey(route) && route.resume.a === route.a && route.resume.c === c && route.resume.v === v;
+      t += `<div class="vs ${on || rm ? "bm" : ""}" id="v${c}_${v}"><div class="mk"><button class="vnum ${on ? "on" : ""}" data-bm="${c}:${v}" aria-pressed="${on}" aria-label="סימניה: עד כאן למדתי, פסוק ${gem(v)}">${gem(v)}${BMI}</button>${verseHTML(mt, rc)}</div>${S.twice ? `<div class="mk"><span class="vnum x2" aria-label="קריאה שנייה">×2</span>${verseHTML(mt, null)}</div>` : ""}${S.targum ? `<div class="tg"><i>תרגום</i>${g}</div>` : ""}</div>${pb ? '<div class="pbr"></div>' : ""}`;
       if (on) t += `<div class="bmline" id="bmline"><span>🔖 עד כאן למדתי</span><button data-bmclear>הסר</button></div>`;
+      else if (rm) t += `<div class="bmline" id="bmline"><span>🔖 כאן עצרת בפעם הקודמת</span></div>`;
     }
   }
   const dayNm = s.w ? `יום ${DAYN[a]} · ` : "";
@@ -604,7 +609,7 @@ function toggleDone(w, a) {
 }
 document.addEventListener("click", e => {
   if (e.target.id === "ov") return closeSheet();
-  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-bk],[data-p],[data-bm],[data-bmclear],[data-hint]");
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
   if (!t) return;
   const D = t.dataset;
   if (t.hasAttribute("data-close")) closeSheet();
@@ -614,7 +619,7 @@ document.addEventListener("click", e => {
   else if (D.th) { S.theme = D.th; applyTheme(); save(); document.querySelectorAll("#sheet [data-th]").forEach(b => b.classList.toggle("on", b.dataset.th === S.theme)); }
   else if (D.fs && t.closest("#sheet")) { S.fs = Math.min(48, Math.max(16, S.fs + +D.fs)); save(); const tx = $(".text"); if (tx) tx.style.setProperty("--fs", S.fs + "px"); const lb = t.parentElement.querySelector(".on"); if (lb) lb.textContent = S.fs; }
   else if (t.hasAttribute("data-home")) go({ v: "day", date: route.w ? iso(dateOf(route.w, route.a)) : (lastDay || iso(today())) });
-  else if (D.bm) { const [c, v] = D.bm.split(":").map(Number); if (bmAt(route, c, v)) { S.bm = null; toast("הסימניה הוסרה"); } else { S.bm = { k: bmKey(route), a: route.a, c, v }; S.hintBm = true; toast(`🔖 סומן: עד כאן למדתי · פסוק ${gem(v)}`); } save(); route.keep = true; render(); }
+  else if (D.bm) { const [c, v] = D.bm.split(":").map(Number); if (bmAt(route, c, v)) { S.bm = null; toast("הסימניה הוסרה"); } else { S.bm = { k: bmKey(route), a: route.a, c, v }; route.resume = null; S.hintBm = true; toast(`🔖 סומן: עד כאן למדתי · פסוק ${gem(v)}`); } save(); route.keep = true; render(); }
   else if (t.hasAttribute("data-bmclear")) { S.bm = null; save(); toast("הסימניה הוסרה"); route.keep = true; render(); }
   else if (t.hasAttribute("data-hint")) { S.hintBm = true; save(); route.keep = true; render(); }
   else if (t.hasAttribute("data-retry")) { const s = srcOf(route); if (s) { delete txFail[s.r[route.a][0]]; render(); } }
@@ -622,7 +627,14 @@ document.addEventListener("click", e => {
   else if (D.bk) backup(D.bk);
   else if (D.go) go(D.go === "day" ? { v: "day", date: iso(today()) } : D.go === "books" ? { v: "books" } : D.go === "progress" ? { v: "progress" } : { v: "day", date: iso(today()) });
   else if (D.par != null) go({ v: "par", p: +D.par });
-  else if (D.r) { const [k, x, a] = D.r.split(":"); go(k === "w" ? { v: "read", w: x, a: +a } : { v: "read", p: +x, a: +a }); }
+  else if (t.hasAttribute("data-undo")) { if (lastBm) { S.bm = lastBm; lastBm = null; save(); $("#toast").classList.remove("show"); if (route.v === "read") route.resume = null; route.keep = true; render(); } }
+  else if (D.r) {
+    const [k, x, a] = D.r.split(":"), r = k === "w" ? { v: "read", w: x, a: +a } : { v: "read", p: +x, a: +a };
+    if (t.hasAttribute("data-resume") && S.bm) {                       // ממשיכים ללמוד - הסימניה הישנה כבר לא נחוצה
+      lastBm = S.bm; r.resume = S.bm; S.bm = null; save(); toast("הסימניה הוסרה - מתקדמים הלאה", "ביטול");
+    }
+    go(r);
+  }
   else if (D.toggle) { const [w, a] = D.toggle.split(":"); toggleDone(w, +a); }
   else if (D.sunset != null) { S.sunset = D.sunset === "1"; save(); checkDayRoll(); toast(S.sunset ? "היום מתחלף בשקיעה" : "היום מתחלף בחצות"); route.keep = true; render(); }
   else if (D.day) go({ v: "day", date: D.day });
@@ -634,7 +646,7 @@ document.addEventListener("click", e => {
   else if (t.hasAttribute("data-today")) go({ v: "day", date: iso(today()) });
   else if (t.hasAttribute("data-next") || t.hasAttribute("data-prev")) {
     const a = route.a + (t.hasAttribute("data-next") ? 1 : -1); if (a < 0 || a > 6) return;
-    go(Object.assign({}, route, { a, keep: false }), true);
+    go(Object.assign({}, route, { a, keep: false, resume: null }), true);
   }
 });
 document.addEventListener("keydown", e => {
