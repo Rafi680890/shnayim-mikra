@@ -1,5 +1,5 @@
-const CACHE = "shnayim-mikra-v3";
-const CORE = ["./", "index.html", "meta.js", "sched.js", "font.woff2", "font-ui.woff2", "logo.png", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
+const CACHE = "shnayim-mikra-v4";
+const CORE = ["./", "index.html", "meta.js", "sched.js", "font.woff2", "font-ui.woff2", "logo.png", "manifest.webmanifest", "icon-v2-192.png", "icon-v2-512.png"];
 const TXT = [0, 1, 2, 3, 4].map(i => ["tx/" + i + ".json", "rashi/" + i + ".json"]).flat();
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(async c => {
