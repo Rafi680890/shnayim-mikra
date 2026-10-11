@@ -1,4 +1,4 @@
-const CACHE = "shnayim-mikra-v2";
+const CACHE = "shnayim-mikra-v3";
 const CORE = ["./", "index.html", "meta.js", "sched.js", "font.woff2", "font-ui.woff2", "logo.png", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 const TXT = [0, 1, 2, 3, 4].map(i => ["tx/" + i + ".json", "rashi/" + i + ".json"]).flat();
 self.addEventListener("install", e => {
