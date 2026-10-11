@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10294f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>שניים מקרא ואחד תרגום</title>
+<style>
+@font-face{font-family:"TanachFont";src:url(font.woff2) format("woff2");font-weight:100 900;font-stretch:62% 100%;font-display:swap}
+@font-face{font-family:"UIFont";src:url(font-ui.woff2) format("woff2");font-weight:100 900;font-display:swap}
+:root{--bg:#f4efe4;--card:#fffdf8;--ink:#23262d;--mute:#6d6a62;--accent:#14305a;--ok:#22875a;--line:#e6dec9;--mark:#fff1b8;--fs:26px;
+ --hld:#fde2a0;--hlz:#c6ecd6;--bmc:#9b2c3d;--bmbg:rgba(155,44,61,.10);--bmflash:rgba(155,44,61,.32);--c1:#b4572b;--c2:#1b7f8c;--c3:#6a3fa0;--gold:#d9a441;--hero1:#0f2750;--hero2:#1b5e86;--hero3:#1b8a94}
+[data-theme=dark]{--bmc:#e57a8e;--bmbg:rgba(229,122,142,.14);--bmflash:rgba(229,122,142,.38);--bg:#12161c;--card:#1b2029;--ink:#e9e5da;--mute:#9b978c;--accent:#9cc0f0;--ok:#5fc287;--line:#2b323d;--mark:#4a4220;--hld:#5a4a1a;--hlz:#1f5a3d;--c1:#e08a5c;--c2:#52b8c4;--c3:#b394e6}
+[data-theme=sepia]{--bmc:#8a2c1d;--bmbg:rgba(138,44,29,.12);--bmflash:rgba(138,44,29,.34);--bg:#efe2c3;--card:#f8edd3;--ink:#3b2f1a;--mute:#7a6a4a;--accent:#6b3f1d;--ok:#3d7a43;--line:#d8c79d;--mark:#f3d982;--hld:#f4cf7a;--hlz:#bfe0c0}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"UIFont",system-ui,"Segoe UI",Arial,sans-serif;font-size:17px}
+button,select,input{font:inherit;color:inherit}button{cursor:pointer}
+svg{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#app{max-width:720px;margin:0 auto;padding:0 14px calc(104px + env(safe-area-inset-bottom))}
+/* hero */
+.hero{margin:0 -14px;padding:calc(22px + env(safe-area-inset-top)) 18px 70px;text-align:center;color:#fff;border-radius:0 0 34px 34px;
+ background:radial-gradient(circle at 15% 10%,rgba(217,164,65,.35),transparent 45%),radial-gradient(circle at 90% 90%,rgba(255,255,255,.12),transparent 40%),linear-gradient(160deg,var(--hero1),var(--hero2) 60%,var(--hero3))}
+.hero h1{margin:16px 0 2px;font-size:38px;font-weight:800;letter-spacing:.5px}
+.hero h1 b{color:var(--gold)}
+.hero p{margin:0;opacity:.9;font-size:15px}
+.htop{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hded{display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 12px;border:1px solid rgba(217,164,65,.55);border-radius:14px;background:rgba(255,255,255,.08);text-align:center}
+.hded div{line-height:1.25}
+.hded i{width:26px;height:1px;background:var(--gold);opacity:.8}
+.hded small{display:block;color:var(--gold);font-size:10.5px;font-weight:700;letter-spacing:.6px}
+.hded b{display:block;font-size:13px;font-weight:700;color:#fff}
+.orn{display:flex;align-items:center;gap:10px;justify-content:center;color:var(--gold);margin:10px auto 0;max-width:260px}
+.orn:before,.orn:after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.orn:after{transform:scaleX(-1)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin:14px 0;box-shadow:0 2px 10px rgba(20,48,90,.06)}
+.datecard{margin-top:-46px;text-align:center;position:relative;padding:18px 12px 16px}
+.datecard .he{font-size:30px;font-weight:800;color:var(--accent);line-height:1.2}
+.datecard .gr{font-size:17px;color:var(--mute);margin-top:4px}
+.chip{display:inline-block;margin-top:10px;background:linear-gradient(90deg,var(--c2),var(--c3));color:#fff;border-radius:999px;padding:4px 14px;font-size:14px;font-weight:600}
+.strip{display:flex;gap:6px;margin-top:12px}
+.dy{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:14px;padding:7px 0 8px;font-size:13px;color:var(--mute);line-height:1.2;font-weight:600}
+.dy b{display:block;font-size:17px;color:var(--ink);margin-top:2px;font-weight:800}
+.dy.sel{background:var(--accent);border-color:var(--accent);color:#cfe0f5}.dy.sel b{color:#fff}
+.dy.today{box-shadow:inset 0 -4px 0 var(--gold)}
+.dy:disabled{opacity:.35;cursor:default}
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:10px}
+.weeknav button{border:0;background:none;color:var(--accent);font-weight:800;font-size:15px;padding:8px 4px}
+.weeknav .td{border:2px solid var(--accent);border-radius:999px;padding:6px 22px;background:none;color:var(--accent)}
+.weeknav .td.on{background:var(--accent);color:var(--card);box-shadow:0 3px 10px rgba(20,48,90,.3)}
+.swrow{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;font-size:13px;color:var(--mute);font-weight:600}
+.sg{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px;color:var(--ink)}
+.sg.on{background:var(--accent);border-color:var(--accent);color:var(--card)}
+.nav{display:flex;gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap}
+.nav button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:9px 18px;font-weight:600}
+.nav button.p{background:var(--accent);color:var(--card);border-color:var(--accent)}
+/* chapter cards */
+.btn{border:0;border-radius:12px;padding:10px 16px;font-weight:700;white-space:nowrap}
+.btn.read{background:linear-gradient(135deg,var(--hero1),var(--hero2) 65%,var(--hero3));color:#fff;font-size:18px;font-weight:800;padding:8px 18px 8px 12px;display:flex;align-items:center;gap:9px;box-shadow:0 5px 14px rgba(16,41,80,.35)}
+.btn.read .ic{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;flex:none}
+.btn.read .ic svg{width:20px;height:20px;stroke-width:2.2}
+.btn.read:active{transform:scale(.97)}
+.btn.chk{background:var(--bg);border:2px solid var(--line);color:var(--mute)}
+.btn.chk.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.banner{background:var(--mark);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin:14px 0}
+.banner.col{flex-direction:column;align-items:stretch}
+.banner .bb{display:flex;gap:8px;flex-wrap:wrap}
+.banner .bb button{margin:0;flex:1;min-width:130px}
+.banner button{margin-inline-start:auto;border:0;background:var(--accent);color:var(--card);border-radius:10px;padding:9px 14px;font-weight:700;white-space:nowrap}
+.ring{--p:0;width:74px;height:74px;border-radius:50%;background:conic-gradient(var(--ok) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center;flex:none}
+.ring i{width:56px;height:56px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-style:normal;font-weight:800;font-size:16px}
+.prog{display:flex;align-items:center;gap:14px}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+h3.sh{margin:0 0 10px;font-size:19px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.lbl{font-size:13px;font-weight:700;color:var(--mute);margin:10px 2px 4px}
+select{width:100%;height:46px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 10px;font-size:17px;color:var(--ink)}
+.tabs{position:fixed;bottom:0;inset-inline:0;background:var(--card);border-top:1px solid var(--line);display:flex;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:6;box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+.tabs button{flex:1;border:0;border-radius:14px;background:none;padding:8px 4px;font-size:14px;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs svg{width:24px;height:24px}
+.tabs button.on{color:var(--accent);font-weight:800}
+.tabs button.hl{background:linear-gradient(135deg,#1b5e86,#1b8a94);color:#fff;font-weight:800;box-shadow:0 5px 14px rgba(27,94,134,.5);position:relative}
+.tabs button.hl i{position:absolute;top:-9px;left:10px;background:var(--gold);color:#14305a;border-radius:999px;font-style:normal;font-size:12px;font-weight:800;padding:1px 8px}
+/* footer */
+.ft{text-align:center;margin:30px 0 8px;color:var(--mute)}
+.ft .ded{margin:10px auto;padding:12px 10px;max-width:380px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ft .ded small{display:block;color:var(--gold);letter-spacing:1px;font-size:13px;font-weight:700}
+.ft .ded b{display:block;color:var(--accent);font-size:17px;font-weight:700;margin:1px 0 6px}
+.ft .ded b:last-child{margin-bottom:0}
+.ft .cp{font-size:12px;opacity:.85}
+.ft .src{font-size:11px;opacity:.75;margin-top:6px;line-height:1.5}
+.ft .src a{color:inherit;text-decoration:underline}
+/* reader */
+.rh{position:sticky;top:0;z-index:5;margin:0 -14px;padding:calc(8px + env(safe-area-inset-top)) 12px 10px;display:flex;align-items:center;gap:10px;color:#fff;background:linear-gradient(160deg,var(--hero1),var(--hero2) 70%,var(--hero3));box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.rh .home{display:flex;align-items:center;gap:6px;border:0;background:#fff;color:#10294f;font-weight:800;border-radius:999px;padding:9px 14px;box-shadow:0 2px 6px rgba(0,0,0,.25);white-space:nowrap}
+.rh .rt{flex:1;text-align:center;font-weight:800;font-size:19px}
+.rh .gear{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.14);color:#fff;border-radius:12px;height:42px;min-width:46px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 10px}
+.text{font-family:"TanachFont","Noto Serif Hebrew","Ezra SIL","SBL Hebrew","Times New Roman",serif;font-size:var(--fs);line-height:2.2;text-align:right;hyphens:none;margin-top:8px}
+.rbar{position:fixed;bottom:0;inset-inline:0;background:var(--card);border-top:1px solid var(--line);padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:stretch;z-index:6;box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.rbar button{border:1px solid var(--line);background:var(--bg);border-radius:14px;min-height:50px;padding:4px 10px;font-weight:700;line-height:1.15;flex:1}
+.rbar button small{display:block;font-weight:500;font-size:12px;color:var(--mute)}
+.rbar .next{background:var(--accent);color:var(--card);border-color:var(--accent)}
+.rbar .next small{color:inherit;opacity:.85}
+.rbar .learn{flex:1.2;background:var(--card);color:var(--ok);border:2px solid var(--ok)}
+.rbar .learn.on{background:var(--ok);color:#fff}
+/* sheets */
+.ov{position:fixed;inset:0;background:rgba(10,18,34,.55);z-index:30;display:none;align-items:flex-end;justify-content:center}
+.ov.show{display:flex}
+.sheet{overscroll-behavior:contain;background:var(--card);width:100%;max-width:720px;max-height:78vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:0}}
+.sheet .x{float:left;border:0;background:var(--bg);width:38px;height:38px;border-radius:50%;font-size:18px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-of-type{border:0}
+.seg{display:flex;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 12px;font-weight:700}
+.seg button.on{background:var(--accent);color:var(--card);border-color:var(--accent)}
+.themes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;width:100%}
+.themes button{border:2px solid var(--line);border-radius:14px;padding:10px 4px;font-size:15px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--bg)}
+.themes button.on{border-color:var(--accent)}
+.themes i{width:34px;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.2)}
+.sw{width:52px;height:30px;border-radius:999px;border:0;background:var(--line);position:relative;flex:none}
+.sw:after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.sw.on{background:var(--ok)}.sw.on:after{inset-inline-start:25px}
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:999px;z-index:40;font-size:15px;opacity:0;transition:opacity .25s;pointer-events:none}
+.toast.show{opacity:.95}
+.toast button{margin-inline-start:14px;border:0;background:#fff;color:#14305a;border-radius:999px;padding:6px 14px;font-weight:800}
+:root{--tg:#e4f2f4;--tgb:#1b7f8c}
+[data-theme=dark]{--tg:#1a2c31;--tgb:#52b8c4}
+[data-theme=sepia]{--tg:#e9dfba;--tgb:#1b6f6a}
+.hero h1{font-size:32px;line-height:1.25}
+.chip.hol{background:linear-gradient(90deg,#b4572b,#d9a441)}
+.strip .dy{position:relative}
+.dy .ck{position:absolute;top:3px;inset-inline-end:5px;font-style:normal;font-size:11px;color:var(--ok);font-weight:800}
+.dy.sel .ck{color:#bff0d3}
+.dy small{display:block;font-size:10.5px;font-weight:600;opacity:.8;margin-top:1px}
+/* כרטיס עלייה */
+.al{padding:16px 18px 16px 14px;position:relative;overflow:hidden;display:flex;align-items:center;gap:12px}
+.al:before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:9px;background:linear-gradient(180deg,var(--hero1),var(--hero2) 60%,var(--hero3))}
+.al .t{flex:1;min-width:0;padding-inline-start:8px}
+.al .t small{color:var(--c2);font-weight:800;font-size:14px}
+.al .t b{display:block;font-size:24px;line-height:1.25;margin:1px 0}
+.al .t span{font-size:14px;color:var(--mute)}
+.al .btns{display:flex;flex-direction:column;gap:8px}
+.al.done .t b{color:var(--ok)}
+.wl{display:flex;align-items:center;gap:10px;width:100%;text-align:right;background:none;border:0;border-bottom:1px solid var(--line);padding:11px 4px}
+.wl:last-child{border:0}
+.wl .n{flex:none;width:34px;height:34px;border-radius:50%;background:var(--bg);border:1px solid var(--line);display:grid;place-items:center;font-weight:800;color:var(--accent)}
+.wl .x1{flex:1;min-width:0}
+.wl .x1 b{display:block;font-size:16px}
+.wl .x1 span{font-size:13px;color:var(--mute)}
+.wl.sel .n{background:var(--accent);color:var(--card);border-color:var(--accent)}
+.wl.done .n{background:var(--ok);border-color:var(--ok);color:#fff}
+.wl .go{flex:none;color:var(--mute)}
+.tot{display:flex;gap:10px;margin-top:12px}
+.tot div{flex:1;background:var(--bg);border-radius:14px;padding:8px;text-align:center;font-size:13px;color:var(--mute)}
+.tot b{display:block;font-size:22px;color:var(--accent)}
+.jump{display:flex;gap:8px;align-items:center}
+.jump input{flex:1;height:46px;border:1px solid var(--line);background:var(--card);border-radius:10px;padding:0 10px;font-size:17px;color:var(--ink)}
+/* ספרים */
+.sec{font-size:17px;font-weight:800;margin:22px 4px 8px;display:flex;align-items:center;gap:8px}
+.sec:before{content:"";width:6px;height:20px;border-radius:3px;background:var(--cc)}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.pg button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 6px;font-weight:700;font-size:15px;line-height:1.25}
+.pg button small{display:block;font-weight:500;font-size:11.5px;color:var(--mute);margin-top:2px}
+.pg button.cur{border:2px solid var(--gold);background:var(--mark)}
+/* קריאה */
+.rsub{text-align:center;margin:12px 0 2px;color:var(--mute);font-size:14px}
+.rsub b{display:block;color:var(--accent);font-size:19px}
+.text{margin-top:6px}
+.chh{display:flex;align-items:center;gap:10px;color:var(--c2);font-family:"UIFont",system-ui,sans-serif;font-weight:800;font-size:15px;margin:18px 0 6px}
+.chh:before,.chh:after{content:"";flex:1;height:1px;background:var(--line)}
+.vs{margin:4px 0 6px}
+.mk{line-height:2.1}
+.vnum{font-family:"UIFont",system-ui,sans-serif;font-size:.46em;color:var(--accent);border:1px solid var(--line);border-radius:8px;padding:3px 8px;margin-inline-end:8px;vertical-align:middle;background:var(--card);white-space:nowrap}
+.tg{font-size:calc(var(--fs)*.86);line-height:1.95;background:var(--tg);border-inline-start:5px solid var(--tgb);border-radius:10px;padding:6px 12px;margin:2px 0 4px}
+.tg i{font-style:normal;font-family:"UIFont",system-ui,sans-serif;font-size:.5em;font-weight:800;color:var(--tgb);margin-inline-end:8px;letter-spacing:.3px;vertical-align:middle}
+.pbr{height:.7em}
+.rh .rt small{display:block;font-weight:600;font-size:12px;opacity:.85}
+.logo{display:inline-block;background:#fff;border-radius:18px;padding:8px 14px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.logo img{display:block;height:72px;width:auto}
+.cmn{font-size:14px;color:var(--mute);text-align:center;margin:6px 0;font-family:"UIFont",system-ui,sans-serif}
+:root{--bmc:#9b2c3d;--bmbg:rgba(155,44,61,.10);--bmflash:rgba(155,44,61,.32)}
+[data-theme=dark]{--bmc:#e57a8e;--bmbg:rgba(229,122,142,.14);--bmflash:rgba(229,122,142,.38)}
+[data-theme=sepia]{--bmc:#8a2c1d;--bmbg:rgba(138,44,29,.12);--bmflash:rgba(138,44,29,.34)}
+button.vnum{cursor:pointer}
+.vnum svg{width:1.1em;height:1.1em;vertical-align:-.18em;margin-inline-start:5px}
+.vnum.on{background:var(--bmc);border-color:var(--bmc);color:#fff}
+.vnum.on svg{fill:currentColor}
+.vs{border-radius:8px;transition:background .3s}
+.vs.bm{background:var(--bmbg)}
+.vs.pulse{animation:bmpulse .9s ease-in-out 3}
+@keyframes bmpulse{0%,100%{background:var(--bmbg)}50%{background:var(--bmflash)}}
+.bmline{display:flex;align-items:center;gap:10px;margin:8px 0 14px;color:var(--bmc);font-family:"UIFont",system-ui,sans-serif;font-size:16px;font-weight:800;line-height:1.2}
+.bmline:before,.bmline:after{content:"";flex:1;height:2px;background:var(--bmc);opacity:.85}
+.bmline button{border:1px solid var(--bmc);background:transparent;color:var(--bmc);border-radius:999px;font-size:12px;font-weight:700;padding:3px 10px}
+.hint{display:flex;align-items:center;gap:12px;background:var(--card);border:2px dashed var(--bmc);border-radius:16px;padding:12px 14px;margin:10px 0 4px;font-family:"UIFont",system-ui,sans-serif;font-size:15px;line-height:1.5}
+.hint b{color:var(--bmc)}
+.hint button{border:0;background:var(--bmc);color:#fff;border-radius:10px;padding:9px 14px;font-weight:700;white-space:nowrap}
+.bmcard{display:flex;flex-wrap:wrap;align-items:center;gap:14px;background:linear-gradient(135deg,var(--card),var(--bmbg));border:2px solid var(--bmc);padding:14px}
+.bmcard .ico{width:46px;height:46px;border-radius:50%;background:var(--bmc);color:#fff;display:grid;place-items:center;flex:none}
+.bmcard .ico svg{width:24px;height:24px;fill:currentColor}
+.bmcard .tx{flex:1;min-width:0}
+.bmcard .tx small{color:var(--bmc);font-weight:800;font-size:13px}
+.bmcard .tx b{display:block;font-size:19px}
+.bmcard .tx span{display:block;font-size:15px;color:var(--mute)}
+.bmcard .go{border:0;background:var(--bmc);color:#fff;border-radius:12px;padding:13px 14px;font-weight:800;font-size:17px;width:100%}
+.tabs button.hl{background:linear-gradient(135deg,#1b5e86,#1b8a94);color:#fff;font-weight:800;box-shadow:0 5px 14px rgba(27,94,134,.5);position:relative}
+.tabs button.hl i{position:absolute;top:-9px;left:10px;background:var(--gold);color:#14305a;border-radius:999px;font-style:normal;font-size:12px;font-weight:800;padding:1px 8px}
+.book{display:block;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:6px 0}
+.book .r{display:flex;justify-content:space-between;margin-bottom:6px}
+.hl{border-radius:10px;padding:1px 4px;cursor:pointer;-webkit-box-decoration-break:clone;box-decoration-break:clone;background:var(--hld)}
+.hl:focus-visible,.lo:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lo{border:0;line-height:1.6;display:inline-block;font-family:"UIFont",sans-serif;font-size:.45em;border-radius:999px;padding:0 9px;margin-inline-end:4px;vertical-align:middle;cursor:pointer;color:var(--ink);background:var(--hld)}
+.legend{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-size:13px;color:var(--mute);margin:12px 0 4px;font-family:"UIFont",sans-serif}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:16px;height:16px;border-radius:5px;display:inline-block}
+.cmt{border-radius:14px;padding:12px 14px;margin:10px 0;line-height:1.85;font-size:19px;background:var(--hld)}
+.cmt .src{font-size:13px;font-weight:800;opacity:.75;display:block}
+.cmt h4{margin:2px 0 4px;font-size:22px;font-family:"TanachFont",serif}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="ov" id="ov"><div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1"></div></div>
+<div class="toast" id="toast"></div>
+<script src="meta.js"></script>
+<script src="sched.js"></script>
+<script>
+"use strict";
+/* ---------- נתונים ---------- */
+const B = window.META, P = window.PARASHOT, SCH = window.SCHED;   // META: שמות וכמות פסוקים; PARASHOT: 54 פרשות; SCHED: שבת -> פרשת השבוע ו-7 עליות
+if (!Array.isArray(B) || !Array.isArray(P) || !SCH) {
+  document.getElementById("app").innerHTML = '<div style="text-align:center;padding:60px 20px;font-size:18px"><b>לא ניתן לטעון את הנתונים</b><div style="margin:8px 0 16px;opacity:.75">בדוק את החיבור לאינטרנט, או אם חוסם פרסומות מופעל, ורענן את הדף.</div><button onclick="location.reload()" style="padding:10px 22px;border-radius:12px;border:0;background:#14305a;color:#fff;font-size:17px">רענן</button></div>';
+  throw new Error("data missing");
+}
+const WKS = Object.keys(SCH).sort(), MINW = WKS[0], MAXW = WKS[WKS.length - 1];
+const DAYN = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
+const ALN = ["ראשונה", "שנייה", "שלישית", "רביעית", "חמישית", "שישית", "שביעית"];
+const BCOL = ["--c1", "--c2", "--c3", "--gold", "--hero2"];
+
+/* ---------- מצב ---------- */
+const KEY = "shnayimMikra.v1";
+function validateBm() {
+  const b = S.bm, srcOk = b && typeof b.k === "string" && (b.k.startsWith("w:") ? b.k.slice(2) in SCH : P[+b.k.slice(2)] && b.k.startsWith("p:"));
+  const rr = srcOk && Number.isInteger(b.a) && b.a >= 0 && b.a <= 6 ? (b.k[0] === "w" ? SCH[b.k.slice(2)] : P[+b.k.slice(2)]).r[b.a] : null;
+  if (!(rr && Number.isInteger(b.c) && Number.isInteger(b.v) && (b.c > rr[1] || b.v >= rr[2]) && (b.c < rr[3] || b.v <= rr[4]) && b.c >= rr[1] && b.c <= rr[3] && b.v >= 1)) S.bm = null;
+}
+let S = { v: 1, done: {}, bm: null, hintBm: false, rashi: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
+try {
+  const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw 0;
+  Object.assign(S, raw);
+} catch (e) {}
+{
+  const ok = /^\d{4}-\d\d-\d\d:[0-6]$/;
+  S.done = Object.fromEntries(Object.keys(S.done && typeof S.done === "object" && !Array.isArray(S.done) ? S.done : {}).filter(k => ok.test(k) && k.slice(0, 10) in SCH).map(k => [k, 1]));
+  validateBm();
+  S.hintBm = !!S.hintBm;
+  if (!(Number.isFinite(S.fs) && S.fs >= 16 && S.fs <= 48)) S.fs = 26;
+  if (!["light", "sepia", "dark", "auto"].includes(S.theme)) S.theme = "light";
+  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.targum = S.targum !== false;
+}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const dk = (w, a) => w + ":" + a;
+const BMI = '<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>';
+const bmKey = rt => rt.w ? "w:" + rt.w : "p:" + rt.p;
+const bmAt = (rt, c, v) => !!S.bm && S.bm.k === bmKey(rt) && S.bm.a === rt.a && (c === undefined || (S.bm.c === c && S.bm.v === v));
+const isDone = (w, a) => !!S.done[dk(w, a)];
+const weekDone = w => { let n = 0; for (let a = 0; a < 7; a++) if (isDone(w, a)) n++; return n; };
+try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+const darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
+function applyTheme() { document.documentElement.dataset.theme = S.theme === "auto" ? (darkMQ && darkMQ.matches ? "dark" : "light") : S.theme; }
+applyTheme();
+if (darkMQ) (darkMQ.addEventListener ? darkMQ.addEventListener("change", applyTheme) : darkMQ.addListener(applyTheme));
+
+/* ---------- עזרים ---------- */
+function heb(n) {
+  const L = [[400, "ת"], [300, "ש"], [200, "ר"], [100, "ק"], [90, "צ"], [80, "פ"], [70, "ע"], [60, "ס"], [50, "נ"], [40, "מ"], [30, "ל"], [20, "כ"], [10, "י"], [9, "ט"], [8, "ח"], [7, "ז"], [6, "ו"], [5, "ה"], [4, "ד"], [3, "ג"], [2, "ב"], [1, "א"]];
+  let s = ""; for (const [v, l] of L) { if (n === 15 || n === 16) { s += n === 15 ? "טו" : "טז"; n = 0; break; } while (n >= v) { s += l; n -= v; } }
+  return s;
+}
+const gem = n => { const h = heb(n); return h.length > 1 ? h.slice(0, -1) + "״" + h.slice(-1) : h + "׳"; };
+const hebParts = new Intl.DateTimeFormat("he-u-ca-hebrew", { day: "numeric", month: "long", year: "numeric" });
+const hebOf = d => { const p = {}; hebParts.formatToParts(d).forEach(x => p[x.type] = x.value); const num = v => /^\d+$/.test(v); return { m: p.month, yt: num(p.year) ? gem(+p.year % 1000) : p.year, dt: num(p.day) ? gem(+p.day) : p.day }; };
+const hebFmt = d => { const h = hebOf(d); return `${h.dt} ב${h.m} ${h.yt}`; };
+const wdFmt = new Intl.DateTimeFormat("he-IL", { weekday: "long" });
+const pad = n => String(n).padStart(2, "0");
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parseISO = s => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d, 12); };
+const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n, 12);
+const shabOf = d => iso(addDays(d, 6 - d.getDay()));
+const dateOf = (w, a) => addDays(parseISO(w), a - 6);              // יום ראשון = עלייה 1 ... שבת = עלייה 7
+/* היום העברי מתחיל בשקיעה: אחרי השקיעה בירושלים "היום" הוא התאריך הבא. מחושב לפי שעון ירושלים, בלי תלות באזור הזמן של המכשיר. */
+const JER = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" });
+function sunsetMs(y, m, d, lat = 31.778, lon = 35.235) {          // m מ-0; אלגוריתם NOAA, מחזיר זמן UTC במילישניות
+  const R = Math.PI / 180, JD = Date.UTC(y, m, d, 12) / 864e5 + 2440587.5, T = (JD - 2451545) / 36525;
+  const L0 = (280.46646 + T * (36000.76983 + T * 0.0003032)) % 360, M = 357.52911 + T * (35999.05029 - 0.0001537 * T), e = 0.016708634 - T * (0.000042037 + 0.0000001267 * T);
+  const C = Math.sin(M * R) * (1.914602 - T * (0.004817 + 0.000014 * T)) + Math.sin(2 * M * R) * (0.019993 - 0.000101 * T) + Math.sin(3 * M * R) * 0.000289;
+  const om = 125.04 - 1934.136 * T, lam = L0 + C - 0.00569 - 0.00478 * Math.sin(om * R);
+  const e0 = 23 + (26 + (21.448 - T * (46.815 + T * (0.00059 - T * 0.001813))) / 60) / 60, eps = e0 + 0.00256 * Math.cos(om * R);
+  const dec = Math.asin(Math.sin(eps * R) * Math.sin(lam * R)), y2 = Math.tan(eps * R / 2) ** 2;
+  const eq = 4 * (y2 * Math.sin(2 * L0 * R) - 2 * e * Math.sin(M * R) + 4 * e * y2 * Math.sin(M * R) * Math.cos(2 * L0 * R) - 0.5 * y2 * y2 * Math.sin(4 * L0 * R) - 1.25 * e * e * Math.sin(2 * M * R)) / R;
+  const ha = Math.acos(Math.cos(90.833 * R) / (Math.cos(lat * R) * Math.cos(dec)) - Math.tan(lat * R) * Math.tan(dec)) / R;
+  return Date.UTC(y, m, d) + (720 - 4 * (lon - ha) - eq) * 60000;
+}
+let todayShifted = false;
+const today = () => {
+  const [y, m, d] = JER.format(new Date()).split("-").map(Number);
+  todayShifted = S.sunset !== false && Date.now() >= sunsetMs(y, m - 1, d);
+  return new Date(y, m - 1, d + (todayShifted ? 1 : 0), 12);
+};
+const $ = s => document.querySelector(s);
+function toast(t) {
+  const e = $("#toast"); e.textContent = t; e.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove("show"), 1800);
+}
+const I = {
+  home: '<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>',
+  chart: '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></svg>',
+  cal: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
+  openbook: '<svg viewBox="0 0 24 24"><path d="M12 6.5C9.8 5 7 4.5 3.5 4.5v13c3.5 0 6.3.5 8.5 2 2.2-1.5 5-2 8.5-2v-13C17 4.5 14.2 5 12 6.5z"/><path d="M12 6.5v13"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>'
+};
+
+/* ---------- טווחים ופסוקים ---------- */
+// טווח r = [ספר, פרק התחלה, פסוק התחלה, פרק סוף, פסוק סוף]
+const refText = (r, withBook) => {
+  const [b, c1, v1, c2, v2] = r;
+  return (withBook ? B[b].n + " " : "") + (c1 === c2 ? `${gem(c1)}:${gem(v1)}–${gem(v2)}` : `${gem(c1)}:${gem(v1)}–${gem(c2)}:${gem(v2)}`);
+};
+const vcount = r => { let n = 0; for (let c = r[1]; c <= r[3]; c++) n += (c === r[3] ? r[4] : B[r[0]].c[c - 1]) - (c === r[1] ? r[2] : 1) + 1; return n; };
+function srcOf(rt) {
+  if (rt.w) { const s = SCH[rt.w]; return s ? { name: s.n, hol: s.h, r: s.r, w: rt.w } : null; }
+  const p = P[rt.p]; return p ? { name: p.n, hol: false, r: p.r, p: rt.p } : null;
+}
+const ttl = s => { const n = s.name !== undefined ? s.name : s.n, h = s.hol !== undefined ? s.hol : s.h; return h ? n : "פרשת " + n; };
+
+/* ---------- ניתוב ---------- */
+let route = { v: "day", date: iso(today()) };
+let lastDay = null, lastHash = null;
+const urlOf = r => "#" + r.v + (r.date ? "/" + r.date : "") + (r.w ? "/w/" + r.w + "/" + r.a : "") + (r.v === "read" && r.p != null ? "/p/" + r.p + "/" + r.a : "") + (r.v === "par" ? "/" + r.p : "");
+function go(r, replace) { route = r; history[replace ? "replaceState" : "pushState"](null, "", urlOf(r)); lastHash = location.hash; closeSheet(); render(); }
+function fromHash() {
+  if (location.hash === lastHash) return; const first = lastHash === null; lastHash = location.hash;
+  const parts = location.hash.slice(1).split("/"), v = parts[0];
+  if (v === "read" && parts[1] === "w" && SCH[parts[2]] && parts[3] >= 0 && parts[3] <= 6 && parts[3] !== "") route = { v, w: parts[2], a: +parts[3] };
+  else if (v === "read" && parts[1] === "p" && P[+parts[2]] && parts[3] >= 0 && parts[3] <= 6 && parts[3] !== "") route = { v, p: +parts[2], a: +parts[3] };
+  else if (v === "par" && P[+parts[1]]) route = { v, p: +parts[1] };
+  else if (v === "books" || v === "progress") route = { v };
+  else route = { v: "day", date: !first && /^\d{4}-\d\d-\d\d$/.test(parts[1] || "") ? parts[1] : iso(today()) };
+  closeSheet(); render();
+}
+window.addEventListener("popstate", fromHash);
+window.addEventListener("hashchange", fromHash);
+
+/* ---------- טעינת הטקסט ---------- */
+const TX = {}, txLoading = {}, txFail = {};
+function loadText(b) {
+  if (TX[b] || txLoading[b]) return; txLoading[b] = 1; delete txFail[b];
+  fetch("tx/" + b + ".json").then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { TX[b] = j; })
+    .catch(() => { txFail[b] = 1; })
+    .finally(() => { delete txLoading[b]; if (route.v === "read" && srcOf(route) && srcOf(route).r[route.a][0] === b) render(); });
+}
+window.addEventListener("online", () => { for (const k in txFail) delete txFail[k]; if (route.v === "read") render(); });
+const RS = {}, rsLoading = {}, rsFail = {}; let rsToasted = false;
+function loadRashi(b) {
+  if (RS[b] || rsLoading[b] || rsFail[b]) return; rsLoading[b] = 1;
+  fetch("rashi/" + b + ".json").then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { RS[b] = j; })
+    .catch(() => { rsFail[b] = 1; if (!rsToasted) { rsToasted = true; toast("פירוש רש״י לא נטען - נדרש חיבור לאינטרנט"); } })
+    .finally(() => { delete rsLoading[b]; const sr = route.v === "read" ? srcOf(route) : null; if (sr && sr.r[route.a][0] === b && RS[b]) { route.keep = true; render(); } });
+}
+const NIK = /[\u0591-\u05C7\u034f]/g;
+const norm = x => x.replace(NIK, "").replace(/[^א-ת]/g, "");
+const strip1 = x => x.replace(/^[ובהכלמש]{1,2}/, "");
+const zsk = x => strip1(x).replace(/[וי]/g, "");           // שלד עיצורי, ללא אותיות קריאה
+function sim(a, b) {                                         // התאמה מחמירה: אותה מילה, עד כדי תחילית וכתיב מלא/חסר
+  if (!a || !b) return false; if (a === b) return true;
+  if ((a === "ה" && /^[ובהכלמש]?יהוה$/.test(b)) || (b === "ה" && /^[ובהכלמש]?יהוה$/.test(a))) return true;
+  const x = strip1(a), y = strip1(b); if (x.length >= 2 && x === y) return true;
+  const p = zsk(a), q = zsk(b); return p.length >= 2 && p === q;
+}
+function parseC(x) {
+  const m = /^\s*<(?:b|strong)[^>]*>([\s\S]*?)<\/(?:b|strong)>\s*([\s\S]*)$/i.exec(x);
+  const h = m ? m[1].replace(/<[^>]+>/g, "").replace(/[.:\s]+$/, "") : "", b = (m ? m[2] : x).replace(/<[^>]+>/g, "");
+  const hw = h.replace(/(וגו|וכו|וגומר|וכולי)[׳'’"]?.*$/, "").split(/[\s־-]+/).map(norm).filter(Boolean);
+  return { h, b, hw };
+}
+function annotate(words, cs) {                               // מצמיד כל פירוש למילים של דיבור המתחיל שלו
+  const map = {}, loose = [], n = words.length; let cur = 0;
+  for (const c of cs) {
+    let best = -1, run = 0;
+    if (c.hw.length && n) {
+      const idx = [...Array(n).keys()], from = cur % n, starts = idx.slice(from).concat(idx.slice(0, from));
+      for (const i of starts) {
+        if (!sim(words[i].n, c.hw[0])) continue;
+        let r = 1; while (r < c.hw.length && i + r < n && sim(words[i + r].n, c.hw[r])) r++;
+        if (r > run) { run = r; best = i; if (r === c.hw.length) break; }
+      }
+    }
+    if (best < 0) { loose.push(c); continue; }
+    for (let k = best; k < best + run; k++) (map[k] = map[k] || []).push(c);
+    cur = best + run;
+  }
+  return { map, loose };
+}
+let POP = [];
+function verseHTML(text, rc) {
+  const toks = []; (text.match(/[^־\s]+־?/g) || []).forEach(t => { if (t === "׀" && toks.length) toks[toks.length - 1].t += " ׀"; else toks.push({ t, n: norm(t) }); });
+  if (!rc || !rc.length) return toks.map(w => w.t).join(" ").replace(/־ /g, "־");
+  const { map, loose } = annotate(toks, rc.map(parseC));
+  const ids = new Map(), idOf = c => { if (!ids.has(c)) { ids.set(c, POP.length); POP.push(c); } return ids.get(c); };
+  const key = k => map[k] ? map[k].map(idOf).join(",") : "";
+  let out = "", k = 0;
+  while (k < toks.length) {
+    const ky = key(k);
+    if (!ky) { out += toks[k].t + (toks[k].t.endsWith("־") ? "" : " "); k++; continue; }
+    let e = k; while (e + 1 < toks.length && key(e + 1) === ky) e++;
+    let inner = ""; for (let q = k; q <= e; q++) inner += toks[q].t + (q < e && !toks[q].t.endsWith("־") ? " " : "");
+    out += `<span class="hl" role="button" tabindex="0" aria-label="פירוש רש״י" data-p="${ky}">${inner}</span>${toks[e].t.endsWith("־") ? "" : " "}`;
+    k = e + 1;
+  }
+  loose.forEach(c => { out += `<button class="lo" aria-label="רש״י - פירוש לפסוק" data-p="${idOf(c)}">רש״י</button> `; });
+  return out;
+}
+const stripT = s => s.replace(/[֑-֯׀]/g, "");
+
+/* ---------- תצוגות ---------- */
+const SHARE_URL = location.origin.startsWith("http") ? location.origin + location.pathname : "";
+const MAM_SRC = "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94";
+function footer(src) {
+  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד (לפי תאג׳ תימני), ברישיון CC-BY-SA, באמצעות ספריא. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
+}
+function coverage() {                                              // פסוקים שנלמדו (איחוד כל העליות שסומנו), לפי ספר
+  const seen = B.map(() => new Set());
+  for (const k of Object.keys(S.done)) {
+    const r = SCH[k.slice(0, 10)].r[+k[11]], set = seen[r[0]];
+    for (let c = r[1]; c <= r[3]; c++) for (let v = c === r[1] ? r[2] : 1, e = c === r[3] ? r[4] : B[r[0]].c[c - 1]; v <= e; v++) set.add(c * 1000 + v);
+  }
+  const tot = B.map(b => b.c.reduce((x, n) => x + n, 0)), got = seen.map(x => x.size), all = tot.reduce((x, n) => x + n, 0), g = got.reduce((x, n) => x + n, 0);
+  return { tot, got, all, g, pct: Math.round(g / all * 100) };
+}
+function tabs() {
+  const on = route.v === "progress" ? "p" : route.v === "books" || route.v === "par" ? "b" : "d", pct = coverage().pct;
+  return `<nav class="tabs"><button class="hl" data-go="progress" ${on === "p" ? 'aria-current="page"' : ""}><i>${pct}%</i>${I.chart}<span>התקדמות שלי</span></button><button class="${on === "d" ? "on" : ""}" data-go="day">${I.home}<span>השבוע</span></button><button class="${on === "b" ? "on" : ""}" data-go="books">${I.book}<span>חלוקה לספרים</span></button></nav>`;
+}
+function weekStrip(d, w, isToday) {
+  const td = iso(today()); let cells = "";
+  for (let a = 0; a < 7; a++) {
+    const x = dateOf(w, a), id = iso(x), ok = !!SCH[w];
+    cells += `<button class="dy ${id === route.date ? "sel" : ""} ${id === td ? "today" : ""}" ${ok ? `data-day="${id}"` : "disabled"} aria-label="יום ${DAYN[a]} ${hebOf(x).dt}">${["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "ש׳"][a]}<b>${hebOf(x).dt}</b>${ok && isDone(w, a) ? '<i class="ck">✓</i>' : ""}</button>`;
+  }
+  return `<div class="strip">${cells}</div><div class="weeknav"><button data-week="-1">› שבוע קודם</button><button class="td ${isToday ? "on" : ""}" data-today ${isToday ? 'aria-current="date"' : ""}>היום</button><button data-week="1">שבוע הבא ‹</button></div><div class="swrow"><span>היום מתחלף:</span><button class="sg ${S.sunset !== false ? "on" : ""}" data-sunset="1">🌙 בשקיעה</button><button class="sg ${S.sunset === false ? "on" : ""}" data-sunset="0">🕛 בחצות</button></div>`;
+}
+function totals() {
+  const ws = {}; Object.keys(S.done).forEach(k => { ws[k.slice(0, 10)] = (ws[k.slice(0, 10)] || 0) + 1; });
+  return { al: Object.keys(S.done).length, full: Object.values(ws).filter(n => n === 7).length };
+}
+function dayView() {
+  const d = parseISO(route.date), w = shabOf(d), a = d.getDay(), isToday = route.date === iso(today());
+  lastDay = route.date;
+  const s = SCH[w];
+  let body = "";
+  if (!s) body = `<div class="card" style="text-align:center">אין נתוני לוח לתאריך הזה (הלוח כולל את התקופה ${hebFmt(parseISO(MINW))} עד ${hebFmt(parseISO(MAXW))}).<div class="nav"><button class="p" data-today>חזרה להיום</button></div></div>`;
+  else {
+    const r = s.r[a], done = isDone(w, a);
+    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${refText(r, true)}</b><span>${vcount(r)} פסוקים</span></div>
+      <div class="btns"><button class="btn read" data-r="w:${w}:${a}"><span class="ic">${I.openbook}</span>לקריאה</button><button class="btn chk ${done ? "on" : ""}" data-toggle="${w}:${a}">${I.check} ${done ? "למדתי" : "סמן כנלמד"}</button></div></div>`;
+    const wd = weekDone(w), pct = Math.round(wd / 7 * 100), t = totals();
+    body += `<div class="card"><h3 class="sh">${I.cal} ${ttl(s)} · כל העליות</h3>` +
+      s.r.map((r, i) => `<button class="wl ${i === a ? "sel" : ""} ${isDone(w, i) ? "done" : ""}" data-day="${iso(dateOf(w, i))}"><span class="n">${isDone(w, i) ? "✓" : i + 1}</span><span class="x1"><b>יום ${DAYN[i]} · עלייה ${ALN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span><span class="go">‹</span></button>`).join("") + `</div>
+    <div class="card prog"><div class="ring" style="--p:${pct}"><i>${wd}/7</i></div><div style="flex:1"><b style="font-size:18px">התקדמות השבוע</b><div style="color:var(--mute);margin:2px 0 8px">${wd} מתוך 7 עליות נלמדו</div><div class="bar"><i style="width:${pct}%"></i></div></div></div>
+    <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
+  }
+  const mn = iso(addDays(parseISO(MINW), -6));
+  let bmc = "";
+  if (S.bm) {
+    const k = S.bm.k, rt = k[0] === "w" ? { w: k.slice(2), a: S.bm.a } : { p: +k.slice(2), a: S.bm.a }, bs = srcOf(rt);
+    bmc = `<div class="card bmcard"><div class="ico">${BMI}</div><div class="tx"><small>המשך מהמקום שעצרת</small><b>${ttl(bs)} · עלייה ${ALN[S.bm.a]}</b><span>${B[bs.r[S.bm.a][0]].n} ${gem(S.bm.c)}:${gem(S.bm.v)}</span></div><button class="go" data-r="${k[0]}:${k.slice(2)}:${S.bm.a}">המשך ללמוד ‹</button></div>`;
+  }
+  return `<div class="hero"><div class="htop"><div class="logo"><img src="logo.png" alt="קהילת אבני החושן"></div><div class="hded"><div><small>לעילוי נשמת</small><b>ר׳ אברהם בן ברכה</b></div><i></i><div><small>ולעילוי נשמת</small><b>חנה בת חג׳ילה</b></div><i></i><div><small>ולעילוי נשמת</small><b>שלום שלומי בן חנה</b></div></div></div><h1>שניים מקרא <b>ואחד תרגום</b></h1><p>כל התורה · שבע עליות · מקרא עם טעמים ותרגום אונקלוס אחרי כל פסוק</p><div class="orn">✦</div></div>
+  <div class="card datecard"><div class="he">${hebFmt(d)}</div><div class="gr">${wdFmt.format(d)} · ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}</div>
+  ${s ? `<span class="chip ${s.h ? "hol" : ""}">${ttl(s)}</span>` : ""}${isToday && todayShifted ? `<div class="gr" style="margin-top:6px;font-size:14px">🌙 היום העברי החל בשקיעה</div>` : ""}
+  ${weekStrip(d, w, isToday)}</div>
+  ${bmc}${body}
+  <div class="card"><h3 class="sh">${I.cal} קפיצה לתאריך</h3><div class="jump"><input type="date" id="jd" value="${route.date}" min="${mn}" max="${MAXW}" aria-label="תאריך לועזי"></div></div>
+  ${footer(true)}${tabs()}`;
+}
+function progressView() {
+  const cv = coverage(), t = totals(), cur = shabOf(today());
+  let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="day">${I.home}<span>חזרה לדף הבית</span></button><div class="rt">התקדמות</div></header>
+  <div class="card prog"><div class="ring" style="--p:${cv.pct}"><i>${cv.pct}%</i></div><div style="flex:1"><b style="font-size:18px">התורה כולה</b><div style="color:var(--mute);margin:2px 0 8px">${cv.g} מתוך ${cv.all} פסוקים נלמדו</div><div class="bar"><i style="width:${cv.pct}%"></i></div></div></div>
+  <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
+  B.forEach((bk, b) => {
+    const p = cv.got[b] / cv.tot[b] * 100;
+    h += `<div class="book"><div class="r"><b>${bk.n}</b><span>${cv.got[b]} / ${cv.tot[b]} פסוקים</span></div><div class="bar"><i style="width:${p}%;background:var(${BCOL[b]})"></i></div></div>`;
+  });
+  h += `<div class="sec" style="--cc:var(--accent)">השבועות האחרונים</div><div class="card">`;
+  for (let i = 0, w = cur; i < 8 && w >= MINW; i++, w = iso(addDays(parseISO(w), -7))) {
+    const s = SCH[w]; if (!s) continue; const n = weekDone(w);
+    h += `<button class="wl ${n === 7 ? "done" : ""}" data-day="${iso(dateOf(w, 0))}"><span class="n">${n === 7 ? "✓" : n}</span><span class="x1"><b>${ttl(s)}</b><span>${n} מתוך 7 עליות · ${hebFmt(dateOf(w, 6))}</span></span><span class="go">‹</span></button>`;
+  }
+  h += `</div><div class="card"><h3 class="sh">💾 גיבוי ושחזור</h3><div style="color:var(--mute);font-size:14px;margin-bottom:8px">ההתקדמות והסימניה נשמרות רק במכשיר הזה. כדאי לשמור גיבוי, כדי לא לאבד אותן אם נתוני הדפדפן יימחקו או כשעוברים למכשיר אחר.</div><div class="nav" style="justify-content:flex-start"><button data-bk="copy">העתק קוד גיבוי</button><button data-bk="file">שמור גיבוי לקובץ</button><button data-bk="restore">שחזר מקוד</button><button data-bk="load">שחזר מקובץ</button></div><input type="file" id="bkf" accept=".json,application/json" hidden></div>`;
+  return h + footer(false) + tabs();
+}
+function booksView() {
+  const cw = SCH[shabOf(today())], cn = cw && !cw.h ? cw.n.split("־") : [];
+  let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="day">${I.home}<span>חזרה לדף הבית</span></button><div class="rt">חלוקה לספרים</div></header>`;
+  B.forEach((bk, b) => {
+    h += `<div class="sec" style="--cc:var(${BCOL[b]})">ספר ${bk.n}</div><div class="pg">`;
+    P.forEach((p, i) => {
+      if (p.b !== b) return;
+      const n = p.r.reduce((x, r) => x + vcount(r), 0);
+      h += `<button class="${cn.includes(p.n) ? "cur" : ""}" data-par="${i}">${p.n}<small>${cn.includes(p.n) ? "השבוע · " : ""}${n} פסוקים</small></button>`;
+    });
+    h += `</div>`;
+  });
+  return h + `<div style="text-align:center;color:var(--mute);font-size:13px;margin-top:14px">לחיצה על פרשה מציגה את שבע העליות שלה</div>` + footer(false) + tabs();
+}
+function parView() {
+  const p = P[route.p], n = p.r.reduce((x, r) => x + vcount(r), 0);
+  let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="books">${I.book}<span>חזרה לספרים</span></button><div class="rt">פרשת ${p.n}</div></header>
+  <div class="card"><div style="text-align:center;color:var(--mute);margin-bottom:6px">ספר ${B[p.b].n} · ${n} פסוקים</div>`;
+  p.r.forEach((r, i) => {
+    h += `<button class="wl" data-r="p:${route.p}:${i}"><span class="n">${i + 1}</span><span class="x1"><b>עלייה ${ALN[i]} · יום ${DAYN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span><span class="go">‹</span></button>`;
+  });
+  return h + `</div><div style="text-align:center;color:var(--mute);font-size:13px">יום ראשון בשבוע = עלייה ראשונה ... שבת = עלייה שביעית</div>` + footer(false) + tabs();
+}
+function readView() {
+  const s = srcOf(route), a = route.a;
+  if (!s) return `<div class="card" style="margin-top:30px;text-align:center">הקריאה לא נמצאה.<div class="nav"><button class="p" data-go="day">לדף הבית</button></div></div>`;
+  const r = s.r[a], bi = r[0], homeBtn = s.w ? `<button class="home" data-home>${I.home}<span>חזרה לדף הבית</span></button>` : `<button class="home" data-go-par="${s.p}">${I.book}<span>חזרה לפרשה</span></button>`;
+  const head = `<header class="rh">${homeBtn}<div class="rt">${ttl(s)}<small>עלייה ${ALN[a]}</small></div><button class="gear" data-set aria-label="הגדרות תצוגה">Aa</button></header>`;
+  loadText(bi); if (S.rashi) loadRashi(bi);
+  POP = [];
+  if (!TX[bi]) {
+    return head + (txFail[bi] ? `<div class="card" style="text-align:center;margin-top:24px"><div style="font-size:18px;font-weight:700">לא הצלחנו לטעון את הטקסט</div><div style="color:var(--mute);margin:6px 0 12px">בדוק את החיבור לאינטרנט ונסה שוב.</div><button class="btn read" style="margin:auto" data-retry>נסה שוב</button></div>` : `<div class="cmn" style="margin-top:40px;font-size:18px;text-align:center">טוען…</div>`) + footer(true);
+  }
+  let t = "";
+  for (let c = r[1]; c <= r[3]; c++) {
+    const from = c === r[1] ? r[2] : 1, to = c === r[3] ? r[4] : B[bi].c[c - 1];
+    for (let v = from; v <= to; v++) {
+      const [m, g] = TX[bi][c - 1][v - 1], rc = S.rashi && RS[bi] ? RS[bi][c - 1][v - 1] : null, pb = m.endsWith("\n"), mt = (S.taamim ? m : stripT(m)).trim();
+      if (v === 1 || (c === r[1] && v === from)) t += `<div class="chh">פרק ${gem(c)}</div>`;
+      const on = bmAt(route, c, v);
+      t += `<div class="vs ${on ? "bm" : ""}" id="v${c}_${v}"><div class="mk"><button class="vnum ${on ? "on" : ""}" data-bm="${c}:${v}" aria-pressed="${on}" aria-label="סימניה: עד כאן למדתי, פסוק ${gem(v)}">${gem(v)}${BMI}</button>${verseHTML(mt, rc)}</div>${S.targum ? `<div class="tg"><i>תרגום</i>${g}</div>` : ""}</div>${pb ? '<div class="pbr"></div>' : ""}`;
+      if (on) t += `<div class="bmline" id="bmline"><span>🔖 עד כאן למדתי</span><button data-bmclear>הסר</button></div>`;
+    }
+  }
+  const dayNm = s.w ? `יום ${DAYN[a]} · ` : "";
+  const done = s.w && isDone(s.w, a);
+  const bar = `<div class="rbar"><button data-prev ${a === 0 ? "disabled" : ""}>› ${a > 0 ? "עלייה " + ALN[a - 1] : "הקודמת"}</button>${s.w ? `<button class="learn ${done ? "on" : ""}" data-toggle="${s.w}:${a}">${done ? "✓ למדתי" : "סמן כנלמד"}</button>` : ""}<button class="next" data-next ${a === 6 ? "disabled" : ""}>${a < 6 ? "עלייה " + ALN[a + 1] : "הבאה"} ‹</button></div>`;
+  const hint = !S.hintBm && !S.bm ? `<div class="hint"><div>💡 <b>עוצרים באמצע?</b> לחצו על מספר הפסוק (עם סימן הסימניה) כדי לסמן עד כאן למדתם. בפעם הבאה תמשיכו בדיוק משם.</div><button data-hint>הבנתי</button></div>` : "";
+  return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b></div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${hint}<div class="text" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
+}
+function render() {
+  const sy = window.scrollY, app = $("#app");
+  app.innerHTML = route.v === "read" ? readView() : route.v === "books" ? booksView() : route.v === "progress" ? progressView() : route.v === "par" ? parView() : dayView();
+  const el = route.v === "read" && !route.keep ? $("#bmline") : null;
+  if (el) { const vs = $(".vs.bm"); (vs || el).scrollIntoView({ block: "center" }); if (vs) { vs.classList.remove("pulse"); void vs.offsetWidth; vs.classList.add("pulse"); } }
+  else if (route.keep) window.scrollTo(0, sy); else window.scrollTo(0, 0);
+  route.keep = false;
+}
+
+/* ---------- חלונות קופצים ---------- */
+let prevFocus = null;
+function closeSheet() {
+  const ov = $("#ov"), was = ov.classList.contains("show");
+  ov.classList.remove("show"); document.body.style.overflow = ""; $("#app").removeAttribute("aria-hidden");
+  if (was && prevFocus && document.contains(prevFocus)) prevFocus.focus();
+  prevFocus = null;
+}
+function openSheet(html) {
+  const ov = $("#ov"); if (!ov.classList.contains("show")) prevFocus = document.activeElement;
+  $("#sheet").innerHTML = html; ov.classList.add("show"); document.body.style.overflow = "hidden"; $("#app").setAttribute("aria-hidden", "true");
+  ($("#sheet .x") || $("#sheet")).focus();
+}
+function openPop(ids) {
+  const cs = ids.split(",").map(x => POP[+x]).filter(Boolean);
+  openSheet(`<button class="x" data-close aria-label="סגור">✕</button>` + cs.map(c => `<div class="cmt"><span class="src">רש״י</span>${c.h ? `<h4>${c.h}</h4>` : ""}<div>${c.b}</div></div>`).join(""));
+}
+function settingsHTML() {
+  const th = [["auto", "אוטומטי", "linear-gradient(90deg,#f4efe4 50%,#12161c 50%)"], ["light", "יום", "#f4efe4"], ["sepia", "קלף", "#efe2c3"], ["dark", "לילה", "#12161c"]];
+  const sw = (k, on) => `<button class="sw ${on ? "on" : ""}" data-sw="${k}" role="switch" aria-checked="${on}"></button>`;
+  return `<button class="x" data-close aria-label="סגור">✕</button><h3 class="sh" style="margin-top:4px">הגדרות תצוגה</h3>
+  <div class="row"><span>גודל הכתב</span><div class="seg"><button data-fs="-2">א−</button><button class="on" disabled>${S.fs}</button><button data-fs="2">א+</button></div></div>
+  <div class="row"><span>טעמי המקרא</span>${sw("taamim", S.taamim)}</div>
+  <div class="row"><span>פירוש רש״י <i style="display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--hld);vertical-align:middle"></i></span>${sw("rashi", S.rashi)}</div>
+  <div class="row"><span>תרגום אונקלוס אחרי כל פסוק</span>${sw("targum", S.targum)}</div>
+  <div class="row"><span>היום מתחלף בשקיעה <small style="color:var(--mute)">(כמו התאריך העברי)</small></span>${sw("sunset", S.sunset)}</div>
+  <div style="margin-top:12px;font-weight:700">מצב תצוגה</div>
+  <div style="font-size:13px;color:var(--mute)">"אוטומטי" עוקב אחרי ההגדרה של המכשיר (בהיר או כהה)</div>
+  <div class="themes" style="margin-top:8px">${th.map(([k, n, c]) => `<button class="${S.theme === k ? "on" : ""}" data-th="${k}"><i style="background:${c}"></i>${n}</button>`).join("")}</div>`;
+}
+
+/* ---------- אירועים ---------- */
+function toggleDone(w, a) {
+  const k = dk(w, a); if (S.done[k]) delete S.done[k]; else { S.done[k] = 1; toast("סומן כנלמד ✓"); }
+  save(); route.keep = true; render();
+}
+document.addEventListener("click", e => {
+  if (e.target.id === "ov") return closeSheet();
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-bk],[data-p],[data-bm],[data-bmclear],[data-hint]");
+  if (!t) return;
+  const D = t.dataset;
+  if (t.hasAttribute("data-close")) closeSheet();
+  else if (D.p) openPop(D.p);
+  else if (t.hasAttribute("data-set")) openSheet(settingsHTML());
+  else if (D.sw) { S[D.sw] = !S[D.sw]; save(); if (D.sw === "sunset") checkDayRoll(); t.classList.toggle("on", S[D.sw]); t.setAttribute("aria-checked", S[D.sw]); route.keep = true; render(); }
+  else if (D.th) { S.theme = D.th; applyTheme(); save(); document.querySelectorAll("#sheet [data-th]").forEach(b => b.classList.toggle("on", b.dataset.th === S.theme)); }
+  else if (D.fs && t.closest("#sheet")) { S.fs = Math.min(48, Math.max(16, S.fs + +D.fs)); save(); const tx = $(".text"); if (tx) tx.style.setProperty("--fs", S.fs + "px"); const lb = t.parentElement.querySelector(".on"); if (lb) lb.textContent = S.fs; }
+  else if (t.hasAttribute("data-home")) go({ v: "day", date: route.w ? iso(dateOf(route.w, route.a)) : (lastDay || iso(today())) });
+  else if (D.bm) { const [c, v] = D.bm.split(":").map(Number); if (bmAt(route, c, v)) { S.bm = null; toast("הסימניה הוסרה"); } else { S.bm = { k: bmKey(route), a: route.a, c, v }; S.hintBm = true; toast(`🔖 סומן: עד כאן למדתי · פסוק ${gem(v)}`); } save(); route.keep = true; render(); }
+  else if (t.hasAttribute("data-bmclear")) { S.bm = null; save(); toast("הסימניה הוסרה"); route.keep = true; render(); }
+  else if (t.hasAttribute("data-hint")) { S.hintBm = true; save(); route.keep = true; render(); }
+  else if (t.hasAttribute("data-retry")) { const s = srcOf(route); if (s) { delete txFail[s.r[route.a][0]]; render(); } }
+  else if (D.goPar != null) go({ v: "par", p: +D.goPar });
+  else if (D.bk) backup(D.bk);
+  else if (D.go) go(D.go === "day" ? { v: "day", date: iso(today()) } : D.go === "books" ? { v: "books" } : D.go === "progress" ? { v: "progress" } : { v: "day", date: iso(today()) });
+  else if (D.par != null) go({ v: "par", p: +D.par });
+  else if (D.r) { const [k, x, a] = D.r.split(":"); go(k === "w" ? { v: "read", w: x, a: +a } : { v: "read", p: +x, a: +a }); }
+  else if (D.toggle) { const [w, a] = D.toggle.split(":"); toggleDone(w, +a); }
+  else if (D.sunset != null) { S.sunset = D.sunset === "1"; save(); checkDayRoll(); toast(S.sunset ? "היום מתחלף בשקיעה" : "היום מתחלף בחצות"); route.keep = true; render(); }
+  else if (D.day) go({ v: "day", date: D.day });
+  else if (D.week) {
+    const nd = addDays(parseISO(route.date), 7 * +D.week);
+    if (!SCH[shabOf(nd)]) return toast("אין נתוני לוח לשבוע הזה");
+    go({ v: "day", date: iso(nd) });
+  }
+  else if (t.hasAttribute("data-today")) go({ v: "day", date: iso(today()) });
+  else if (t.hasAttribute("data-next") || t.hasAttribute("data-prev")) {
+    const a = route.a + (t.hasAttribute("data-next") ? 1 : -1); if (a < 0 || a > 6) return;
+    go(Object.assign({}, route, { a, keep: false }), true);
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeSheet();
+  if ((e.key === "Enter" || e.key === " ") && e.target.getAttribute && e.target.getAttribute("role") === "button") { e.preventDefault(); e.target.click(); }
+});
+window.addEventListener("online", () => { for (const k in rsFail) delete rsFail[k]; rsToasted = false; if (route.v === "read") { route.keep = true; render(); } });
+/* ---------- גיבוי ושחזור ---------- */
+const bkData = () => ({ app: "shnayim-mikra", v: 1, done: S.done, bm: S.bm });
+const toCode = o => { const b = new TextEncoder().encode(JSON.stringify(o)); let s = ""; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s); };
+const fromCode = c => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(c), ch => ch.charCodeAt(0))));
+function applyBackup(o) {
+  if (!o || o.app !== "shnayim-mikra" || !o.done || typeof o.done !== "object" || Array.isArray(o.done)) throw 0;
+  for (const k of Object.keys(o.done)) if (/^\d{4}-\d\d-\d\d:[0-6]$/.test(k) && k.slice(0, 10) in SCH) S.done[k] = 1;
+  if (o.bm && !S.bm) { S.bm = o.bm; validateBm(); }
+  save(); toast("הגיבוי שוחזר ✓"); route.keep = true; render();
+}
+function backup(kind) {
+  if (kind === "copy") {
+    const c = toCode(bkData());
+    (navigator.clipboard ? navigator.clipboard.writeText(c).then(() => toast("הקוד הועתק - שמור אותו במקום בטוח")) : Promise.reject()).catch(() => prompt("העתק את הקוד ושמור אותו:", c));
+  } else if (kind === "file") {
+    const json = JSON.stringify(bkData()), name = "shnayim-mikra-backup-" + iso(today()) + ".json";
+    const f = typeof File === "function" ? new File([json], name, { type: "application/json" }) : null;
+    if (f && navigator.canShare && navigator.canShare({ files: [f] })) { navigator.share({ files: [f] }).catch(() => {}); return; }
+    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  } else if (kind === "restore") {
+    const c = prompt("הדבק כאן את קוד הגיבוי:"); if (!c) return;
+    try { applyBackup(fromCode(c.trim())); } catch (e) { toast("הקוד לא תקין"); }
+  } else if (kind === "load") $("#bkf").click();
+}
+document.addEventListener("change", e => {
+  if (e.target.id === "bkf" && e.target.files[0]) { const r = new FileReader(); r.onload = () => { try { applyBackup(JSON.parse(r.result)); } catch (x) { toast("הקובץ לא תקין"); } }; r.readAsText(e.target.files[0]); e.target.value = ""; return; }
+  if (e.target.id === "jd") {
+    const v = e.target.value; if (!/^\d{4}-\d\d-\d\d$/.test(v)) return;
+    if (!SCH[shabOf(parseISO(v))]) return toast("אין נתוני לוח לתאריך הזה");
+    go({ v: "day", date: v });
+  }
+});
+let shownToday = iso(today());
+function checkDayRoll() {                                            // עבר יום (או שקיעה) בזמן שהאפליקציה פתוחה
+  const t = iso(today()); if (t === shownToday) return;
+  const wasToday = route.v === "day" && route.date === shownToday; shownToday = t;
+  if (wasToday) go({ v: "day", date: t }, true); else if (route.v === "day") { route.keep = true; render(); }
+}
+let hiddenAt = 0;
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+  if (hiddenAt && Date.now() - hiddenAt > 3 * 3600e3 && route.v === "day" && route.date !== iso(today())) go({ v: "day", date: iso(today()) }, true);
+  checkDayRoll();
+});
+window.addEventListener("pageshow", checkDayRoll); window.addEventListener("focus", checkDayRoll);
+setInterval(checkDayRoll, 30000);
+fromHash();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(err => console.error("SW registration failed:", err));
+
+</script>
+</body>
+</html>
