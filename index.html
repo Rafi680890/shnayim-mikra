@@ -223,6 +223,12 @@ button.vnum{cursor:pointer}
 .vnum.vnum{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:4.6em;height:2.5em;padding:0 8px;line-height:1;font-weight:700}
 .vnum svg{margin-inline-start:4px}
 .vnum.x2{color:var(--tgb);background:var(--tg);border-color:var(--tgb);font-weight:800}
+.modes .mrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mb{border:2px solid var(--line);background:var(--bg);border-radius:14px;padding:12px 8px;text-align:center;line-height:1.35}
+.mb b{display:block;font-size:16px}
+.mb span{display:block;font-size:12.5px;color:var(--mute);margin-top:4px}
+.mb.on{border-color:var(--accent);background:var(--accent);color:var(--card)}
+.mb.on span{color:inherit;opacity:.85}
 </style>
 </head>
 <body>
@@ -464,6 +470,13 @@ function totals() {
   const ws = {}; Object.keys(S.done).forEach(k => { ws[k.slice(0, 10)] = (ws[k.slice(0, 10)] || 0) + 1; });
   return { al: Object.keys(S.done).length, full: Object.values(ws).filter(n => n === 7).length };
 }
+const modeOf = () => S.twice && S.targum ? "full" : !S.twice && !S.targum && S.rashi ? "rashi" : "";
+function modeCard() {
+  const m = modeOf();
+  return `<div class="card modes"><h3 class="sh">${I.book} אופן הלימוד</h3><div class="mrow">
+    <button class="mb ${m === "full" ? "on" : ""}" data-mode="full" aria-pressed="${m === "full"}"><b>שניים מקרא ואחד תרגום</b><span>כל פסוק פעמיים, ומתחתיו התרגום</span></button>
+    <button class="mb ${m === "rashi" ? "on" : ""}" data-mode="rashi" aria-pressed="${m === "rashi"}"><b>פסוק ורש״י</b><span>הפסוק פעם אחת עם פירוש רש״י, בלי תרגום</span></button></div></div>`;
+}
 function dayView() {
   const d = parseISO(route.date), w = shabOf(d), a = d.getDay(), isToday = route.date === iso(today());
   lastDay = route.date;
@@ -472,7 +485,7 @@ function dayView() {
   if (!s) body = `<div class="card" style="text-align:center">אין נתוני לוח לתאריך הזה (הלוח כולל את התקופה ${hebFmt(parseISO(MINW))} עד ${hebFmt(parseISO(MAXW))}).<div class="nav"><button class="p" data-today>חזרה להיום</button></div></div>`;
   else {
     const r = s.r[a], done = isDone(w, a), bmH = S.bm && S.bm.k === "w:" + w && S.bm.a === a;
-    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${refText(r, true)}</b><span>${bmH ? `🔖 עצרת בפסוק ${gem(S.bm.v)}` : `${vcount(r)} פסוקים`}</span></div>
+    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${refText(r, true)}</b><span>${bmH ? `🔖 ממשיכים מפסוק ${gem(S.bm.v)}` : `${vcount(r)} פסוקים`}</span></div>
       <div class="btns"><button class="btn read" data-r="w:${w}:${a}"${bmH ? " data-resume" : ""}><span class="ic">${I.openbook}</span>${bmH ? "המשך מפסוק " + gem(S.bm.v) : "לקריאה"}</button><button class="btn chk ${done ? "on" : ""}" data-toggle="${w}:${a}">${I.check} ${done ? "למדתי" : "סמן כנלמד"}</button></div></div>`;
     const wd = weekDone(w), pct = Math.round(wd / 7 * 100), t = totals();
     body += `<div class="card"><h3 class="sh">${I.cal} ${ttl(s)} · כל העליות</h3>` +
@@ -490,7 +503,7 @@ function dayView() {
   <div class="card datecard"><div class="he">${hebFmt(d)}</div><div class="gr">${wdFmt.format(d)} · ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}</div>
   ${s ? `<span class="chip ${s.h ? "hol" : ""}">${ttl(s)}</span>` : ""}${isToday && todayShifted ? `<div class="gr" style="margin-top:6px;font-size:14px">🌙 היום העברי החל בשקיעה</div>` : ""}
   ${weekStrip(d, w, isToday)}</div>
-  ${bmc}${body}
+  ${modeCard()}${bmc}${body}
   <div class="card"><h3 class="sh">${I.cal} קפיצה לתאריך</h3><div class="jump"><input type="date" id="jd" value="${route.date}" min="${mn}" max="${MAXW}" aria-label="תאריך לועזי"></div></div>
   ${footer(true)}${tabs()}`;
 }
@@ -549,17 +562,17 @@ function readView() {
     const from = c === r[1] ? r[2] : 1, to = c === r[3] ? r[4] : B[bi].c[c - 1];
     for (let v = from; v <= to; v++) {
       const [m, g] = TX[bi][c - 1][v - 1], rc = S.rashi && RS[bi] ? RS[bi][c - 1][v - 1] : null, pb = m.endsWith("\n"), mt = (S.taamim ? m : stripT(m)).trim();
-      if (v === 1 || (c === r[1] && v === from)) t += `<div class="chh">פרק ${gem(c)}</div>`;
       const on = bmAt(route, c, v), rm = !on && route.resume && route.resume.k === bmKey(route) && route.resume.a === route.a && route.resume.c === c && route.resume.v === v;
-      t += `<div class="vs ${on || rm ? "bm" : ""}" id="v${c}_${v}"><div class="mk"><button class="vnum ${on ? "on" : ""}" data-bm="${c}:${v}" aria-pressed="${on}" aria-label="סימניה: עד כאן למדתי, פסוק ${gem(v)}">${gem(v)}${BMI}</button>${verseHTML(mt, rc)}</div>${S.twice ? `<div class="mk"><span class="vnum x2" aria-label="קריאה שנייה">×2</span>${verseHTML(mt, null)}</div>` : ""}${S.targum ? `<div class="tg"><i>תרגום</i>${g}</div>` : ""}</div>${pb ? '<div class="pbr"></div>' : ""}`;
       if (on) t += `<div class="bmline" id="bmline"><span>🔖 עד כאן למדתי</span><button data-bmclear>הסר</button></div>`;
       else if (rm) t += `<div class="bmline" id="bmline"><span>🔖 כאן עצרת בפעם הקודמת</span></div>`;
+      if (v === 1 || (c === r[1] && v === from)) t += `<div class="chh">פרק ${gem(c)}</div>`;
+      t += `<div class="vs ${on || rm ? "bm" : ""}" id="v${c}_${v}"><div class="mk"><button class="vnum ${on ? "on" : ""}" data-bm="${c}:${v}" aria-pressed="${on}" aria-label="סימניה: ממשיכים מפסוק ${gem(v)}">${gem(v)}${BMI}</button>${verseHTML(mt, rc)}</div>${S.twice ? `<div class="mk"><span class="vnum x2" aria-label="קריאה שנייה">×2</span>${verseHTML(mt, null)}</div>` : ""}${S.targum ? `<div class="tg"><i>תרגום</i>${g}</div>` : ""}</div>${pb ? '<div class="pbr"></div>' : ""}`;
     }
   }
   const dayNm = s.w ? `יום ${DAYN[a]} · ` : "";
   const done = s.w && isDone(s.w, a);
   const bar = `<div class="rbar"><button data-prev ${a === 0 ? "disabled" : ""}>› ${a > 0 ? "עלייה " + ALN[a - 1] : "הקודמת"}</button>${s.w ? `<button class="learn ${done ? "on" : ""}" data-toggle="${s.w}:${a}">${done ? "✓ למדתי" : "סמן כנלמד"}</button>` : ""}<button class="next" data-next ${a === 6 ? "disabled" : ""}>${a < 6 ? "עלייה " + ALN[a + 1] : "הבאה"} ‹</button></div>`;
-  const hint = !S.hintBm && !S.bm ? `<div class="hint"><div>💡 <b>עוצרים באמצע?</b> לחצו על מספר הפסוק (עם סימן הסימניה) כדי לסמן עד כאן למדתם. בפעם הבאה תמשיכו בדיוק משם.</div><button data-hint>הבנתי</button></div>` : "";
+  const hint = !S.hintBm && !S.bm ? `<div class="hint"><div>💡 <b>עוצרים באמצע?</b> לחצו על מספר הפסוק הבא שעוד לא קראתם (עם סימן הסימניה). יסומן קו מעליו, ובפעם הבאה תמשיכו בדיוק משם.</div><button data-hint>הבנתי</button></div>` : "";
   return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b></div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${hint}<div class="text" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
 }
 function render() {
@@ -610,7 +623,7 @@ function toggleDone(w, a) {
 }
 document.addEventListener("click", e => {
   if (e.target.id === "ov") return closeSheet();
-  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-mode],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
   if (!t) return;
   const D = t.dataset;
   if (t.hasAttribute("data-close")) closeSheet();
@@ -625,6 +638,7 @@ document.addEventListener("click", e => {
   else if (t.hasAttribute("data-hint")) { S.hintBm = true; save(); route.keep = true; render(); }
   else if (t.hasAttribute("data-retry")) { const s = srcOf(route); if (s) { delete txFail[s.r[route.a][0]]; render(); } }
   else if (D.goPar != null) go({ v: "par", p: +D.goPar });
+  else if (D.mode) { S.twice = D.mode === "full"; S.targum = D.mode === "full"; S.rashi = true; save(); toast(D.mode === "full" ? "שניים מקרא ואחד תרגום" : "פסוק ורש״י בלבד"); route.keep = true; render(); }
   else if (D.bk) backup(D.bk);
   else if (D.go) go(D.go === "day" ? { v: "day", date: iso(today()) } : D.go === "books" ? { v: "books" } : D.go === "progress" ? { v: "progress" } : { v: "day", date: iso(today()) });
   else if (D.par != null) go({ v: "par", p: +D.par });
