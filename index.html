@@ -314,6 +314,7 @@ if (!Array.isArray(B) || !Array.isArray(P) || !SCH) {
   document.getElementById("app").innerHTML = '<div style="text-align:center;padding:60px 20px;font-size:18px"><b>לא ניתן לטעון את הנתונים</b><div style="margin:8px 0 16px;opacity:.75">בדוק את החיבור לאינטרנט, או אם חוסם פרסומות מופעל, ורענן את הדף.</div><button onclick="location.reload()" style="padding:10px 22px;border-radius:12px;border:0;background:#14305a;color:#fff;font-size:17px">רענן</button></div>';
   throw new Error("data missing");
 }
+const DATA_V = "20261027b";            // לשנות בכל עדכון של קבצי tx/ או rashi/ (וגם ב-sw.js), כדי שלא יוצג נוסח ישן ממטמון
 const WKS = Object.keys(SCH).sort(), MINW = WKS[0], MAXW = WKS[WKS.length - 1];
 const DAYN = ["ראשון", "שני", "שלישי", "רביעי", "חמישי", "שישי", "שבת"];
 const ALN = ["ראשונה", "שנייה", "שלישית", "רביעית", "חמישית", "שישית", "שביעית"];
@@ -454,7 +455,7 @@ const TX = {}, txLoading = {}, txFail = {};
 function loadText(b) {
   if (TX[b] || txLoading[b] || txFail[b]) return; txLoading[b] = 1;
   const ac = typeof AbortController === "function" ? new AbortController() : null, to = setTimeout(() => ac && ac.abort(), 15000);   // בלי תשובה - מציגים הודעת שגיאה עם "נסה שוב"
-  fetch("tx/" + b + ".json", ac ? { signal: ac.signal } : undefined).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { TX[b] = j; })
+  fetch("tx/" + b + ".json?v=" + DATA_V, ac ? { signal: ac.signal } : undefined).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { TX[b] = j; })
     .catch(() => { txFail[b] = 1; })
     .finally(() => { clearTimeout(to); delete txLoading[b]; if (route.v === "read" && srcOf(route) && srcOf(route).r[route.a][0] === b) render(); });
 }
@@ -462,7 +463,7 @@ window.addEventListener("online", () => { for (const k in txFail) delete txFail[
 const RS = {}, rsLoading = {}, rsFail = {}; let rsToasted = false;
 function loadRashi(b) {
   if (RS[b] || rsLoading[b] || rsFail[b]) return; rsLoading[b] = 1;
-  fetch("rashi/" + b + ".json").then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { RS[b] = j; })
+  fetch("rashi/" + b + ".json?v=" + DATA_V).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { RS[b] = j; })
     .catch(() => { rsFail[b] = 1; if (!rsToasted) { rsToasted = true; toast("פירוש רש״י לא נטען - נדרש חיבור לאינטרנט"); } })
     .finally(() => { delete rsLoading[b]; const sr = route.v === "read" ? srcOf(route) : null; if (sr && sr.r[route.a][0] === b && RS[b]) { route.keep = true; render(); } });
 }

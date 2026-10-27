@@ -1,6 +1,7 @@
-const CACHE = "shnayim-mikra-v8";
+const CACHE = "shnayim-mikra-v9";
 const CORE = ["./", "index.html", "meta.js", "sched.js", "font.woff2", "font-ui.woff2", "logo.png", "manifest.webmanifest", "icon-v3-192.png", "icon-v3-512.png", "icon-v3-180.png"];
-const TXT = [0, 1, 2, 3, 4].map(i => ["tx/" + i + ".json", "rashi/" + i + ".json"]).flat();
+const DATA_V = "20261027b";   // כמו ב-index.html
+const TXT = [0, 1, 2, 3, 4].map(i => ["tx/" + i + ".json?v=" + DATA_V, "rashi/" + i + ".json?v=" + DATA_V]).flat();
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(async c => {
     await c.addAll(CORE);
@@ -13,7 +14,7 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   const isPage = req.mode === "navigate" || /\/(index\.html|meta\.js|sched\.js|manifest\.webmanifest)?$/.test(new URL(req.url).pathname);
   if (isPage) {   // דף ראשי ולוח: קודם רשת (כדי שעדכונים יגיעו), ובלי חיבור - מהמטמון
-    e.respondWith(fetch(req).then(n => { const c = n.clone(); caches.open(CACHE).then(x => x.put(req, c)); return n; }).catch(() => caches.match(req).then(r => r || caches.match("index.html"))));
+    e.respondWith(fetch(req, { cache: "no-cache" }).then(n => { const c = n.clone(); caches.open(CACHE).then(x => x.put(req, c)); return n; }).catch(() => caches.match(req).then(r => r || caches.match("index.html"))));
     return;
   }
   e.respondWith(caches.match(req).then(r => r || fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(CACHE).then(x => x.put(req, c)); } return n; })));
