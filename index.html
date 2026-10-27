@@ -288,6 +288,10 @@ h3.sh{font-size:16px;margin:0 0 8px}
 .wlc{flex:none;min-width:74px;height:40px;border:2px solid var(--line);background:var(--bg);border-radius:12px;font-weight:800;font-size:13px;color:var(--mute);padding:0 8px}
 .wlc.on{background:var(--ok);border-color:var(--ok);color:#fff}
 .bookrow .book{margin:0;flex:1}
+.wla{flex:none;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;min-width:46px;height:40px;border:2px solid var(--line);background:var(--bg);border-radius:12px;font-size:16px;line-height:1;text-decoration:none;color:var(--ink);padding:0 6px}
+.wla span{font-size:10.5px;font-weight:800;color:var(--mute);margin-top:2px}
+.wla.big{flex-direction:row;gap:6px;height:auto;padding:6px 14px;margin-top:8px;border-radius:999px;font-size:15px}
+.wla.big span{font-size:13px;margin:0;color:var(--accent)}
 </style>
 </head>
 <body>
@@ -407,6 +411,17 @@ const vcount = r => { let n = 0; for (let c = r[1]; c <= r[3]; c++) n += (c === 
 function srcOf(rt) {
   if (rt.w) { const s = SCH[rt.w]; return s ? { name: s.n, hol: s.h, r: s.r, w: rt.w } : null; }
   const p = P[rt.p]; return p ? { name: p.n, hol: false, r: p.r, p: rt.p } : null;
+}
+/* שמע: קישור חיפוש ביוטיוב לפרשה, בנוסח ספרדי ירושלמי (אין אישור להטמעת הקלטות באפליקציה) */
+const cmpT = (x, y) => x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
+function pidOf(r) {                                                // הפרשה שמכילה את תחילת העלייה
+  const st = [r[0], r[1], r[2]];
+  return P.findIndex(p => cmpT([p.r[0][0], p.r[0][1], p.r[0][2]], st) <= 0 && cmpT(st, [p.r[6][0], p.r[6][3], p.r[6][4]]) <= 0);
+}
+function audioLink(r) {
+  const i = pidOf(r); if (i < 0) return "";
+  const q = "קריאה בתורה פרשת " + P[i].n.replace(/־/g, " ") + " נוסח ספרדי ירושלמי";
+  return `<a class="wla" href="https://www.youtube.com/results?search_query=${encodeURIComponent(q)}" target="_blank" rel="noopener" aria-label="שמיעת הקריאה בנוסח ספרדי ירושלמי - פרשת ${P[i].n}">🎧<span>שמע</span></a>`;
 }
 const ttl = s => { const n = s.name !== undefined ? s.name : s.n, h = s.hol !== undefined ? s.hol : s.h; return h ? n : "פרשת " + n; };
 
@@ -542,7 +557,7 @@ async function hardRefresh() {                                      // מוחק 
 }
 const MAM_SRC = "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94";
 function footer(src) {
-  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div><div class="ver">גרסה ${APP_VERSION}</div><button class="refbtn" data-refresh>🔄 ריענון לגירסה חדשה</button><div class="vernote">הריענון מוריד את הגרסה העדכנית. ההתקדמות והסימניות שלך נשמרות.</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד (לפי תאג׳ תימני), ברישיון CC-BY-SA, באמצעות ספריא. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
+  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div><div class="ver">גרסה ${APP_VERSION}</div><button class="refbtn" data-refresh>🔄 ריענון לגירסה חדשה</button><div class="vernote">הריענון מוריד את הגרסה העדכנית. ההתקדמות והסימניות שלך נשמרות.</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. שמע: קישורי חיפוש ביוטיוב (נוסח ספרדי ירושלמי). נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד (לפי תאג׳ תימני), ברישיון CC-BY-SA, באמצעות ספריא. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
 }
 function coverage() {                                              // פסוקים שנלמדו (איחוד כל העליות שסומנו), לפי ספר
   const seen = B.map(() => new Set());
@@ -593,7 +608,7 @@ function dayView() {
       <div class="btns"><button class="btn read" data-r="w:${w}:${a}"${bmH ? " data-resume" : ""}><span class="ic">${I.openbook}</span>${bmH ? "המשך מפסוק " + gem(S.bm.v) : "לקריאה"}</button><button class="btn chk ${done ? "on" : ""}" data-toggle="${w}:${a}">${I.check} ${done ? "למדתי" : "סמן כנלמד"}</button></div></div>`;
     const wd = weekDone(w), pct = Math.round(wd / 7 * 100), t = totals();
     body += `<div class="card"><h3 class="sh">${I.cal} ${ttl(s)} · כל העליות</h3>` +
-      s.r.map((r, i) => `<div class="wlw"><button class="wl ${i === a ? "sel" : ""} ${isDone(w, i) ? "done" : ""}" data-day="${iso(dateOf(w, i))}"><span class="n">${isDone(w, i) ? "✓" : i + 1}</span><span class="x1"><b>יום ${DAYN[i]} · עלייה ${ALN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span></button><button class="wlc ${isDone(w, i) ? "on" : ""}" data-toggle="${w}:${i}" aria-pressed="${isDone(w, i)}" aria-label="${isDone(w, i) ? "בטל סימון" : "סמן כנלמד"}: יום ${DAYN[i]}">${isDone(w, i) ? "✓ למדתי" : "☐ סמן"}</button></div>`).join("") + `</div>
+      s.r.map((r, i) => `<div class="wlw"><button class="wl ${i === a ? "sel" : ""} ${isDone(w, i) ? "done" : ""}" data-day="${iso(dateOf(w, i))}"><span class="n">${isDone(w, i) ? "✓" : i + 1}</span><span class="x1"><b>יום ${DAYN[i]} · עלייה ${ALN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span></button>${audioLink(r)}<button class="wlc ${isDone(w, i) ? "on" : ""}" data-toggle="${w}:${i}" aria-pressed="${isDone(w, i)}" aria-label="${isDone(w, i) ? "בטל סימון" : "סמן כנלמד"}: יום ${DAYN[i]}">${isDone(w, i) ? "✓ למדתי" : "☐ סמן"}</button></div>`).join("") + `</div>
     <div class="card prog"><div class="ring" style="--p:${pct}"><i>${wd}/7</i></div><div style="flex:1"><b style="font-size:18px">התקדמות השבוע</b><div style="color:var(--mute);margin:2px 0 8px">${wd} מתוך 7 עליות נלמדו</div><div class="bar"><i style="width:${pct}%"></i></div></div></div>
     <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
   }
@@ -644,7 +659,7 @@ function parView() {
   let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="books">${I.book}<span>חזרה לספרים</span></button><div class="rt">פרשת ${p.n}</div></header>
   <div class="card"><div style="text-align:center;color:var(--mute);margin-bottom:8px">ספר ${B[p.b].n} · ${n} פסוקים</div><button class="btn chk ${S.pd[route.p] ? "on" : ""}" style="width:100%;margin-bottom:6px" data-pd="${route.p}">${I.check} ${S.pd[route.p] ? "הפרשה סומנה כנלמדה" : "סמן את כל הפרשה כנלמדה"}</button>`;
   p.r.forEach((r, i) => {
-    h += `<button class="wl" data-r="p:${route.p}:${i}"><span class="n">${i + 1}</span><span class="x1"><b>עלייה ${ALN[i]} · יום ${DAYN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span><span class="go">‹</span></button>`;
+    h += `<div class="wlw"><button class="wl" data-r="p:${route.p}:${i}"><span class="n">${i + 1}</span><span class="x1"><b>עלייה ${ALN[i]} · יום ${DAYN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span><span class="go">‹</span></button>${audioLink(r)}</div>`;
   });
   return h + `</div><div style="text-align:center;color:var(--mute);font-size:13px">יום ראשון בשבוע = עלייה ראשונה ... שבת = עלייה שביעית</div>` + footer(false) + tabs();
 }
@@ -674,7 +689,7 @@ function readView() {
   const done = s.w && isDone(s.w, a);
   const bar = `<div class="rbar"><button data-prev ${a === 0 ? "disabled" : ""}>› ${a > 0 ? "עלייה " + ALN[a - 1] : "הקודמת"}</button>${s.w ? `<button class="learn ${done ? "on" : ""}" data-toggle="${s.w}:${a}">${done ? "✓ למדתי" : "סמן כנלמד"}</button>` : ""}<button class="next" data-next ${a === 6 ? "disabled" : ""}>${a < 6 ? "עלייה " + ALN[a + 1] : "הבאה"} ‹</button></div>`;
   const hint = !S.hintBm && !S.bm ? `<div class="hint"><div>💡 <b>עוצרים באמצע?</b> לחצו על מספר הפסוק הבא שעוד לא קראתם (עם סימן הסימניה). יסומן קו מעליו, ובפעם הבאה תמשיכו בדיוק משם.</div><button data-hint>הבנתי</button></div>` : "";
-  return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b></div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${hint}<div class="text" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
+  return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b>${audioLink(r).replace('class="wla"', 'class="wla big"')}</div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${hint}<div class="text" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
 }
 function render() {
   const sy = window.scrollY, app = $("#app");
