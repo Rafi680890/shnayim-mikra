@@ -292,6 +292,12 @@ h3.sh{font-size:16px;margin:0 0 8px}
 .wla span{font-size:10.5px;font-weight:800;color:var(--mute);margin-top:2px}
 .wla.big{flex-direction:row;gap:6px;height:auto;padding:6px 14px;margin-top:8px;border-radius:999px;font-size:15px}
 .wla.big span{font-size:13px;margin:0;color:var(--accent)}
+.text{--ex:#c2410c}
+[data-theme=dark] .text{--ex:#ff9a6b}
+[data-theme=sepia] .text{--ex:#a3330f}
+.tg b,.exs{font-weight:inherit;color:var(--ex)}
+.noex .tg b{color:inherit}
+.exs{font-family:"UIFont",sans-serif;font-weight:800}
 </style>
 </head>
 <body>
@@ -320,7 +326,7 @@ function validateBm() {
   const rr = srcOk && Number.isInteger(b.a) && b.a >= 0 && b.a <= 6 ? (b.k[0] === "w" ? SCH[b.k.slice(2)] : P[+b.k.slice(2)]).r[b.a] : null;
   if (!(rr && Number.isInteger(b.c) && Number.isInteger(b.v) && (b.c > rr[1] || b.v >= rr[2]) && (b.c < rr[3] || b.v <= rr[4]) && b.c >= rr[1] && b.c <= rr[3] && b.v >= 1)) S.bm = null;
 }
-let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, rashi: true, twice: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
+let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, rashi: true, twice: true, explain: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
 try {
   const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw 0;
@@ -334,7 +340,7 @@ try {
   S.hintBm = !!S.hintBm;
   if (!(Number.isFinite(S.fs) && S.fs >= 16 && S.fs <= 48)) S.fs = 26;
   if (!["light", "sepia", "dark", "auto"].includes(S.theme)) S.theme = "light";
-  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.twice = S.twice !== false; S.targum = S.targum !== false;
+  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.twice = S.twice !== false; S.explain = S.explain !== false; S.targum = S.targum !== false;
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 const dk = (w, a) => w + ":" + a;
@@ -557,7 +563,7 @@ async function hardRefresh() {                                      // מוחק 
 }
 const MAM_SRC = "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94";
 function footer(src) {
-  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div><div class="ver">גרסה ${APP_VERSION}</div><button class="refbtn" data-refresh>🔄 ריענון לגירסה חדשה</button><div class="vernote">הריענון מוריד את הגרסה העדכנית. ההתקדמות והסימניות שלך נשמרות.</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. שמע: קישורי חיפוש ביוטיוב (נוסח ספרדי ירושלמי). נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד (לפי תאג׳ תימני), ברישיון CC-BY-SA, באמצעות ספריא. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
+  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div><div class="ver">גרסה ${APP_VERSION}</div><button class="refbtn" data-refresh>🔄 ריענון לגירסה חדשה</button><div class="vernote">הריענון מוריד את הגרסה העדכנית. ההתקדמות והסימניות שלך נשמרות.</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. שמע: קישורי חיפוש ביוטיוב (נוסח ספרדי ירושלמי). נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד, מתוך חומש שפתי חכמים (הוצאת מצודה, 2009), ברישיון CC-BY-NC, באמצעות ספריא. המילים הצבועות בתרגום מסומנות במהדורה זו כמקומות שבהם אונקלוס מפרש ולא מתרגם. בתצוגה זו הוסרו נוסחאות חלופיות והסוגריים. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
 }
 function coverage() {                                              // פסוקים שנלמדו (איחוד כל העליות שסומנו), לפי ספר
   const seen = B.map(() => new Set());
@@ -689,7 +695,7 @@ function readView() {
   const done = s.w && isDone(s.w, a);
   const bar = `<div class="rbar"><button data-prev ${a === 0 ? "disabled" : ""}>› ${a > 0 ? "עלייה " + ALN[a - 1] : "הקודמת"}</button>${s.w ? `<button class="learn ${done ? "on" : ""}" data-toggle="${s.w}:${a}">${done ? "✓ למדתי" : "סמן כנלמד"}</button>` : ""}<button class="next" data-next ${a === 6 ? "disabled" : ""}>${a < 6 ? "עלייה " + ALN[a + 1] : "הבאה"} ‹</button></div>`;
   const hint = !S.hintBm && !S.bm ? `<div class="hint"><div>💡 <b>עוצרים באמצע?</b> לחצו על מספר הפסוק הבא שעוד לא קראתם (עם סימן הסימניה). יסומן קו מעליו, ובפעם הבאה תמשיכו בדיוק משם.</div><button data-hint>הבנתי</button></div>` : "";
-  return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b>${audioLink(r).replace('class="wla"', 'class="wla big"')}</div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${hint}<div class="text" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
+  return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b>${audioLink(r).replace('class="wla"', 'class="wla big"')}</div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${S.targum && S.explain ? '<div class="legend"><span><b class="exs">מילה צבועה</b> בתרגום = אונקלוס מפרש ולא מתרגם</span></div>' : ""}${hint}<div class="text ${S.explain ? "" : "noex"}" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
 }
 function render() {
   const sy = window.scrollY, app = $("#app");
@@ -726,6 +732,7 @@ function settingsHTML() {
   <div class="row"><span>פירוש רש״י <i style="display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--hld);vertical-align:middle"></i></span>${sw("rashi", S.rashi)}</div>
   <div class="row"><span>כל פסוק פעמיים <small style="color:var(--mute)">(שניים מקרא)</small></span>${sw("twice", S.twice)}</div>
   <div class="row"><span>תרגום אונקלוס אחרי כל פסוק</span>${sw("targum", S.targum)}</div>
+  <div class="row"><span>צביעת מקומות שאונקלוס מפרש <small style="color:var(--mute)">(ולא מתרגם)</small></span>${sw("explain", S.explain)}</div>
   <div class="row"><span>היום מתחלף בשקיעה <small style="color:var(--mute)">(כמו התאריך העברי)</small></span>${sw("sunset", S.sunset)}</div>
   <div style="margin-top:12px;font-weight:700">מצב תצוגה</div>
   <div style="font-size:13px;color:var(--mute)">"אוטומטי" עוקב אחרי ההגדרה של המכשיר (בהיר או כהה)</div>
