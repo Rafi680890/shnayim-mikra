@@ -229,6 +229,65 @@ button.vnum{cursor:pointer}
 .mb span{display:block;font-size:12.5px;color:var(--mute);margin-top:4px}
 .mb.on{border-color:var(--accent);background:var(--accent);color:var(--card)}
 .mb.on span{color:inherit;opacity:.85}
+/* תצוגה צפופה יותר בדף הבית - פחות גלילה בטלפון */
+.hero{padding:calc(10px + env(safe-area-inset-top)) 14px 50px;border-radius:0 0 26px 26px}
+.logo{padding:5px 10px;border-radius:14px}
+.logo img{height:46px}
+.hded{padding:5px 9px;gap:3px;border-radius:12px}
+.hded small{font-size:9.5px}.hded b{font-size:11.5px}.hded i{width:20px}
+.hero h1{font-size:26px;margin:8px 0 0}
+.hero p{font-size:12.5px;margin-top:2px}
+.orn{display:none}
+.card{padding:12px;margin:10px 0;border-radius:18px}
+.datecard{margin-top:-38px;padding:12px 10px 10px}
+.datecard .he{font-size:24px}
+.datecard .gr{font-size:14.5px;margin-top:2px}
+.chip{margin-top:6px;padding:2px 12px;font-size:13px}
+.strip{gap:5px;margin-top:8px}
+.dy{padding:4px 0 5px;font-size:11.5px;border-radius:11px}
+.dy b{font-size:15px;margin-top:0}
+.weeknav{margin-top:6px}
+.weeknav button{padding:5px 4px;font-size:14px}
+.weeknav .td{padding:4px 20px}
+.swrow{margin-top:6px;font-size:12px}
+.sg{padding:4px 10px;font-size:12px}
+h3.sh{font-size:16px;margin:0 0 8px}
+.modes .mb{padding:8px 6px}
+.modes .mb b{font-size:14.5px}
+.modes .mb span{font-size:11.5px;margin-top:2px}
+.al{padding:10px 14px 10px 10px}
+.al .t b{font-size:20px}
+.btn.read{font-size:16px;padding:6px 14px 6px 10px}
+.btn.read .ic{width:28px;height:28px}
+.btn{padding:8px 12px}
+.bookrow{display:flex;gap:6px;align-items:stretch;margin:6px 0}
+.bookrow .book{margin:0;flex:1}
+.bk-all{flex:none;width:54px;border:1px solid var(--line);background:var(--card);border-radius:12px;font-weight:800;font-size:20px;color:var(--ok)}
+.bk-all.full{background:var(--ok);color:#fff;border-color:var(--ok)}
+.ver{font-size:12px;color:var(--mute);margin-top:12px;font-weight:700}
+.refbtn{display:block;margin:8px auto 0;border:2px solid var(--accent);background:var(--card);color:var(--accent);border-radius:12px;padding:10px 18px;font-weight:800;font-size:15px}
+.vernote{font-size:12px;color:var(--mute);margin-top:6px;line-height:1.4}
+.sharecard{border:2px solid var(--line);padding:13px;margin:10px 0}
+.sharecard .shh{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;color:var(--ink);margin:0 0 4px}
+.sharecard .shh svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sharecard .shs{font-size:13px;color:var(--mute);margin:0 0 10px}
+.sharecard .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sharecard .sb{display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:999px;padding:10px 10px;color:#fff;font-weight:800;font-size:16px;transition:transform .12s}
+.sharecard .sb:active{transform:scale(.96)}
+.sharecard .sb svg{width:22px;height:22px;fill:currentColor;flex:none}
+.sharecard .sb.cp svg{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sharecard .wa{background:#2f9e44}.sharecard .fb{background:#1877d2}.sharecard .tg{background:#12a0a8}.sharecard .cp{background:#5b2fa3}
+.sharecard .more{margin-top:8px;width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:transparent;color:var(--accent);border:2px solid var(--accent);border-radius:999px;padding:9px;font-weight:800;font-size:16px}
+.sharecard .more svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sharecard .help{display:block;margin:8px auto 0;border:0;background:none;color:var(--mute);text-decoration:underline;font-size:13px;padding:0}
+.help-steps{font-size:16px;line-height:1.7}.help-steps li{margin-bottom:8px}.help-steps b{color:var(--accent)}
+.sels2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wlw{display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--line)}
+.wlw:last-child{border:0}
+.wlw .wl{flex:1;min-width:0;border:0}
+.wlc{flex:none;min-width:74px;height:40px;border:2px solid var(--line);background:var(--bg);border-radius:12px;font-weight:800;font-size:13px;color:var(--mute);padding:0 8px}
+.wlc.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.bookrow .book{margin:0;flex:1}
 </style>
 </head>
 <body>
@@ -257,7 +316,7 @@ function validateBm() {
   const rr = srcOk && Number.isInteger(b.a) && b.a >= 0 && b.a <= 6 ? (b.k[0] === "w" ? SCH[b.k.slice(2)] : P[+b.k.slice(2)]).r[b.a] : null;
   if (!(rr && Number.isInteger(b.c) && Number.isInteger(b.v) && (b.c > rr[1] || b.v >= rr[2]) && (b.c < rr[3] || b.v <= rr[4]) && b.c >= rr[1] && b.c <= rr[3] && b.v >= 1)) S.bm = null;
 }
-let S = { v: 1, done: {}, bm: null, hintBm: false, rashi: true, twice: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
+let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, rashi: true, twice: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
 try {
   const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw 0;
@@ -265,6 +324,7 @@ try {
 } catch (e) {}
 {
   const ok = /^\d{4}-\d\d-\d\d:[0-6]$/;
+  S.pd = Object.fromEntries(Object.keys(S.pd && typeof S.pd === "object" && !Array.isArray(S.pd) ? S.pd : {}).filter(k => /^\d+$/.test(k) && P[+k]).map(k => [k, 1]));
   S.done = Object.fromEntries(Object.keys(S.done && typeof S.done === "object" && !Array.isArray(S.done) ? S.done : {}).filter(k => ok.test(k) && k.slice(0, 10) in SCH).map(k => [k, 1]));
   validateBm();
   S.hintBm = !!S.hintBm;
@@ -371,10 +431,11 @@ window.addEventListener("hashchange", fromHash);
 /* ---------- טעינת הטקסט ---------- */
 const TX = {}, txLoading = {}, txFail = {};
 function loadText(b) {
-  if (TX[b] || txLoading[b]) return; txLoading[b] = 1; delete txFail[b];
-  fetch("tx/" + b + ".json").then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { TX[b] = j; })
+  if (TX[b] || txLoading[b] || txFail[b]) return; txLoading[b] = 1;
+  const ac = typeof AbortController === "function" ? new AbortController() : null, to = setTimeout(() => ac && ac.abort(), 15000);   // בלי תשובה - מציגים הודעת שגיאה עם "נסה שוב"
+  fetch("tx/" + b + ".json", ac ? { signal: ac.signal } : undefined).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { TX[b] = j; })
     .catch(() => { txFail[b] = 1; })
-    .finally(() => { delete txLoading[b]; if (route.v === "read" && srcOf(route) && srcOf(route).r[route.a][0] === b) render(); });
+    .finally(() => { clearTimeout(to); delete txLoading[b]; if (route.v === "read" && srcOf(route) && srcOf(route).r[route.a][0] === b) render(); });
 }
 window.addEventListener("online", () => { for (const k in txFail) delete txFail[k]; if (route.v === "read") render(); });
 const RS = {}, rsLoading = {}, rsFail = {}; let rsToasted = false;
@@ -440,17 +501,54 @@ function verseHTML(text, rc) {
 const stripT = s => s.replace(/[֑-֯׀]/g, "");
 
 /* ---------- תצוגות ---------- */
-const SHARE_URL = location.origin.startsWith("http") ? location.origin + location.pathname : "";
+const SHARE_URL = "https://rafi680890.github.io/shnayim-mikra/";
+const SHARE_TEXT = "📖 שניים מקרא ואחד תרגום: כל התורה בשבע עליות לפי ימות השבוע, עם טעמי מקרא, תרגום אונקלוס ופירוש רש״י.";
+async function shareApp(kind) {
+  const full = SHARE_TEXT + " " + SHARE_URL, e = encodeURIComponent;
+  if (kind === "wa") { window.open("https://wa.me/?text=" + e(full), "_blank", "noopener"); return; }
+  if (kind === "fb") { window.open("https://www.facebook.com/sharer/sharer.php?u=" + e(SHARE_URL), "_blank", "noopener"); return; }
+  if (kind === "tg") { window.open("https://t.me/share/url?url=" + e(SHARE_URL) + "&text=" + e(SHARE_TEXT), "_blank", "noopener"); return; }
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(full); }
+    catch (er) { const t = document.createElement("textarea"); t.value = full; document.body.appendChild(t); t.select(); try { document.execCommand("copy"); } catch (e2) {} t.remove(); }
+    toast("הקישור הועתק ✓");
+  };
+  if (kind === "copy") { await copy(); return; }
+  try { if (navigator.share) { await navigator.share({ title: "שניים מקרא ואחד תרגום", text: SHARE_TEXT, url: SHARE_URL }); return; } }
+  catch (er) { if (er && er.name === "AbortError") return; }
+  await copy();
+}
+const shareCard = () => `<div class="card sharecard"><div class="shh"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.5l6.8-4M8.6 13.5l6.8 4"/></svg>שתפו עם חברים ומשפחה</div><p class="shs">הקישור יישלח עם הסבר קצר על האפליקציה</p><div class="sgrid">
+<button class="sb wa" data-share="wa"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.2 14c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.4.1.6-.1l.8-1c.2-.2.3-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.3z"/></svg>ווטסאפ</button>
+<button class="sb fb" data-share="fb"><svg viewBox="0 0 24 24"><path d="M13.5 22v-8.2h2.8l.5-3.3h-3.3V8.4c0-1 .4-1.7 1.8-1.7H17V3.800C16.700 3.700 15.700 3.600 14.600 3.600c-2.500 0-4.100 1.500-4.100 4.200v2.700H7.700v3.300h2.800V22z"/></svg>פייסבוק</button>
+<button class="sb tg" data-share="tg"><svg viewBox="0 0 24 24"><path d="M21.500 3.500 2.700 10.800c-.9.300-.9 1.200 0 1.500l4.800 1.500 1.800 5.700c.2.600.9.800 1.400.4l2.600-2.200 4.700 3.500c.6.400 1.300.1 1.500-.6l3.200-15.200c.2-.9-.6-1.600-1.200-1.400zM9.700 14.300l8.200-5.100-6.500 6.200-.3 3.100z"/></svg>טלגרם</button>
+<button class="sb cp" data-share="copy"><svg viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1"/><path d="M14 10a4 4 0 0 0-5.700 0l-3 3A4 4 0 0 0 11 18.700l1-1"/></svg>העתקת קישור</button></div>
+<button class="more" data-share="more"><svg viewBox="0 0 24 24"><path d="M12 15V3M7.500 7.500 12 3l4.500 4.500"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>שתפו באפשרויות נוספות</button>
+<button class="help" data-installhelp>מופיעה אזהרה בהתקנה באנדרואיד? לחצו כאן</button></div>`;
+const installHelpHTML = () => `<button class="x" data-close aria-label="סגור">✕</button><h3 class="sh" style="margin-top:4px">בעיה בהתקנה באנדרואיד</h3>
+<p style="margin:0 0 10px">אם מופיעה הודעה <b>״Google Play Protect: אפליקציה לא בטוחה נחסמה״</b> - זו אזהרה כללית של אנדרואיד על אפליקציות אינטרנט, והאפליקציה עצמה בטוחה (היא אתר, בלי קבצים מסוכנים). אפשר להמשיך כך:</p>
+<ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
+<li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
+<li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
+const APP_VERSION = "2026.10.27";
+async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
+  if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
+  toast("מרענן לגרסה החדשה…");
+  try {
+    if (navigator.serviceWorker) { const regs = await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r => r.unregister())); }
+    if (window.caches) { const ks = await caches.keys(); await Promise.all(ks.map(k => caches.delete(k))); }
+  } catch (e) {}
+  location.replace(location.pathname + "?r=" + Date.now() + location.hash);
+}
 const MAM_SRC = "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94";
 function footer(src) {
-  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד (לפי תאג׳ תימני), ברישיון CC-BY-SA, באמצעות ספריא. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
+  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div><div class="ver">גרסה ${APP_VERSION}</div><button class="refbtn" data-refresh>🔄 ריענון לגירסה חדשה</button><div class="vernote">הריענון מוריד את הגרסה העדכנית. ההתקדמות והסימניות שלך נשמרות.</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד (לפי תאג׳ תימני), ברישיון CC-BY-SA, באמצעות ספריא. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
 }
 function coverage() {                                              // פסוקים שנלמדו (איחוד כל העליות שסומנו), לפי ספר
   const seen = B.map(() => new Set());
-  for (const k of Object.keys(S.done)) {
-    const r = SCH[k.slice(0, 10)].r[+k[11]], set = seen[r[0]];
-    for (let c = r[1]; c <= r[3]; c++) for (let v = c === r[1] ? r[2] : 1, e = c === r[3] ? r[4] : B[r[0]].c[c - 1]; v <= e; v++) set.add(c * 1000 + v);
-  }
+  const add = r => { const set = seen[r[0]]; for (let c = r[1]; c <= r[3]; c++) for (let v = c === r[1] ? r[2] : 1, e = c === r[3] ? r[4] : B[r[0]].c[c - 1]; v <= e; v++) set.add(c * 1000 + v); };
+  for (const k of Object.keys(S.done)) add(SCH[k.slice(0, 10)].r[+k[11]]);
+  for (const i of Object.keys(S.pd)) P[+i].r.forEach(add);
   const tot = B.map(b => b.c.reduce((x, n) => x + n, 0)), got = seen.map(x => x.size), all = tot.reduce((x, n) => x + n, 0), g = got.reduce((x, n) => x + n, 0);
   return { tot, got, all, g, pct: Math.round(g / all * 100) };
 }
@@ -477,6 +575,12 @@ function modeCard() {
     <button class="mb ${m === "full" ? "on" : ""}" data-mode="full" aria-pressed="${m === "full"}"><b>שניים מקרא ואחד תרגום</b><span>כל פסוק פעמיים, ומתחתיו התרגום</span></button>
     <button class="mb ${m === "rashi" ? "on" : ""}" data-mode="rashi" aria-pressed="${m === "rashi"}"><b>פסוק ורש״י</b><span>הפסוק פעם אחת עם פירוש רש״י, בלי תרגום</span></button></div></div>`;
 }
+let navBook = "";
+function navCard() {
+  const bo = B.map((b, i) => `<option value="${i}" ${String(i) === navBook ? "selected" : ""}>${b.n}</option>`).join("");
+  const po = navBook !== "" ? `<select data-nav="par" aria-label="פרשה"><option value="">בחר פרשה</option>${P.map((p, i) => p.b === +navBook ? `<option value="${i}">${p.n}</option>` : "").join("")}</select>` : "";
+  return `<div class="card"><h3 class="sh">${I.book} ניווט לפי ספרים</h3><div class="sels2"><select data-nav="book" aria-label="ספר"><option value="">בחר ספר</option>${bo}</select>${po}</div></div>`;
+}
 function dayView() {
   const d = parseISO(route.date), w = shabOf(d), a = d.getDay(), isToday = route.date === iso(today());
   lastDay = route.date;
@@ -485,11 +589,11 @@ function dayView() {
   if (!s) body = `<div class="card" style="text-align:center">אין נתוני לוח לתאריך הזה (הלוח כולל את התקופה ${hebFmt(parseISO(MINW))} עד ${hebFmt(parseISO(MAXW))}).<div class="nav"><button class="p" data-today>חזרה להיום</button></div></div>`;
   else {
     const r = s.r[a], done = isDone(w, a), bmH = S.bm && S.bm.k === "w:" + w && S.bm.a === a;
-    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${refText(r, true)}</b><span>${bmH ? `🔖 ממשיכים מפסוק ${gem(S.bm.v)}` : `${vcount(r)} פסוקים`}</span></div>
+    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${B[r[0]].n}, ${s.n} ${refText(r)}</b><span>${bmH ? `🔖 ממשיכים מפסוק ${gem(S.bm.v)}` : `${vcount(r)} פסוקים`}</span></div>
       <div class="btns"><button class="btn read" data-r="w:${w}:${a}"${bmH ? " data-resume" : ""}><span class="ic">${I.openbook}</span>${bmH ? "המשך מפסוק " + gem(S.bm.v) : "לקריאה"}</button><button class="btn chk ${done ? "on" : ""}" data-toggle="${w}:${a}">${I.check} ${done ? "למדתי" : "סמן כנלמד"}</button></div></div>`;
     const wd = weekDone(w), pct = Math.round(wd / 7 * 100), t = totals();
     body += `<div class="card"><h3 class="sh">${I.cal} ${ttl(s)} · כל העליות</h3>` +
-      s.r.map((r, i) => `<button class="wl ${i === a ? "sel" : ""} ${isDone(w, i) ? "done" : ""}" data-day="${iso(dateOf(w, i))}"><span class="n">${isDone(w, i) ? "✓" : i + 1}</span><span class="x1"><b>יום ${DAYN[i]} · עלייה ${ALN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span><span class="go">‹</span></button>`).join("") + `</div>
+      s.r.map((r, i) => `<div class="wlw"><button class="wl ${i === a ? "sel" : ""} ${isDone(w, i) ? "done" : ""}" data-day="${iso(dateOf(w, i))}"><span class="n">${isDone(w, i) ? "✓" : i + 1}</span><span class="x1"><b>יום ${DAYN[i]} · עלייה ${ALN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span></button><button class="wlc ${isDone(w, i) ? "on" : ""}" data-toggle="${w}:${i}" aria-pressed="${isDone(w, i)}" aria-label="${isDone(w, i) ? "בטל סימון" : "סמן כנלמד"}: יום ${DAYN[i]}">${isDone(w, i) ? "✓ למדתי" : "☐ סמן"}</button></div>`).join("") + `</div>
     <div class="card prog"><div class="ring" style="--p:${pct}"><i>${wd}/7</i></div><div style="flex:1"><b style="font-size:18px">התקדמות השבוע</b><div style="color:var(--mute);margin:2px 0 8px">${wd} מתוך 7 עליות נלמדו</div><div class="bar"><i style="width:${pct}%"></i></div></div></div>
     <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
   }
@@ -504,24 +608,21 @@ function dayView() {
   ${s ? `<span class="chip ${s.h ? "hol" : ""}">${ttl(s)}</span>` : ""}${isToday && todayShifted ? `<div class="gr" style="margin-top:6px;font-size:14px">🌙 היום העברי החל בשקיעה</div>` : ""}
   ${weekStrip(d, w, isToday)}</div>
   ${modeCard()}${bmc}${body}
+  ${navCard()}
   <div class="card"><h3 class="sh">${I.cal} קפיצה לתאריך</h3><div class="jump"><input type="date" id="jd" value="${route.date}" min="${mn}" max="${MAXW}" aria-label="תאריך לועזי"></div></div>
-  ${footer(true)}${tabs()}`;
+  ${shareCard()}${footer(true)}${tabs()}`;
 }
 function progressView() {
-  const cv = coverage(), t = totals(), cur = shabOf(today());
+  const cv = coverage(), t = totals();
   let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="day">${I.home}<span>חזרה לדף הבית</span></button><div class="rt">התקדמות</div></header>
   <div class="card prog"><div class="ring" style="--p:${cv.pct}"><i>${cv.pct}%</i></div><div style="flex:1"><b style="font-size:18px">התורה כולה</b><div style="color:var(--mute);margin:2px 0 8px">${cv.g} מתוך ${cv.all} פסוקים נלמדו</div><div class="bar"><i style="width:${cv.pct}%"></i></div></div></div>
   <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
   B.forEach((bk, b) => {
     const p = cv.got[b] / cv.tot[b] * 100;
-    h += `<div class="book"><div class="r"><b>${bk.n}</b><span>${cv.got[b]} / ${cv.tot[b]} פסוקים</span></div><div class="bar"><i style="width:${p}%;background:var(${BCOL[b]})"></i></div></div>`;
+    const full = P.every((q, i) => q.b !== b || S.pd[i]);
+    h += `<div class="bookrow"><div class="book"><div class="r"><b>${bk.n}</b><span>${cv.got[b]} / ${cv.tot[b]} פסוקים</span></div><div class="bar"><i style="width:${p}%;background:var(${BCOL[b]})"></i></div></div><button class="bk-all ${full ? "full" : ""}" data-bookall="${b}" aria-pressed="${full}" aria-label="${full ? "בטל סימון של כל ספר " : "סמן כנלמד את כל ספר "}${bk.n}">${full ? "✓" : "☐"}</button></div>`;
   });
-  h += `<div class="sec" style="--cc:var(--accent)">השבועות האחרונים</div><div class="card">`;
-  for (let i = 0, w = cur; i < 8 && w >= MINW; i++, w = iso(addDays(parseISO(w), -7))) {
-    const s = SCH[w]; if (!s) continue; const n = weekDone(w);
-    h += `<button class="wl ${n === 7 ? "done" : ""}" data-day="${iso(dateOf(w, 0))}"><span class="n">${n === 7 ? "✓" : n}</span><span class="x1"><b>${ttl(s)}</b><span>${n} מתוך 7 עליות · ${hebFmt(dateOf(w, 6))}</span></span><span class="go">‹</span></button>`;
-  }
-  h += `</div><div class="card"><h3 class="sh">💾 גיבוי ושחזור</h3><div style="color:var(--mute);font-size:14px;margin-bottom:8px">ההתקדמות והסימניה נשמרות רק במכשיר הזה. כדאי לשמור גיבוי, כדי לא לאבד אותן אם נתוני הדפדפן יימחקו או כשעוברים למכשיר אחר.</div><div class="nav" style="justify-content:flex-start"><button data-bk="copy">העתק קוד גיבוי</button><button data-bk="file">שמור גיבוי לקובץ</button><button data-bk="restore">שחזר מקוד</button><button data-bk="load">שחזר מקובץ</button></div><input type="file" id="bkf" accept=".json,application/json" hidden></div>`;
+  h += `<div class="card"><h3 class="sh">💾 גיבוי ושחזור</h3><div style="color:var(--mute);font-size:14px;margin-bottom:8px">ההתקדמות והסימניה נשמרות רק במכשיר הזה. כדאי לשמור גיבוי, כדי לא לאבד אותן אם נתוני הדפדפן יימחקו או כשעוברים למכשיר אחר.</div><div class="nav" style="justify-content:flex-start"><button data-bk="copy">העתק קוד גיבוי</button><button data-bk="file">שמור גיבוי לקובץ</button><button data-bk="restore">שחזר מקוד</button><button data-bk="load">שחזר מקובץ</button></div><input type="file" id="bkf" accept=".json,application/json" hidden></div>` + shareCard();
   return h + footer(false) + tabs();
 }
 function booksView() {
@@ -532,7 +633,7 @@ function booksView() {
     P.forEach((p, i) => {
       if (p.b !== b) return;
       const n = p.r.reduce((x, r) => x + vcount(r), 0);
-      h += `<button class="${cn.includes(p.n) ? "cur" : ""}" data-par="${i}">${p.n}<small>${cn.includes(p.n) ? "השבוע · " : ""}${n} פסוקים</small></button>`;
+      h += `<button class="${cn.includes(p.n) ? "cur" : ""}" data-par="${i}">${p.n}<small>${S.pd[i] ? "✓ נלמדה · " : ""}${cn.includes(p.n) ? "השבוע · " : ""}${n} פסוקים</small></button>`;
     });
     h += `</div>`;
   });
@@ -541,7 +642,7 @@ function booksView() {
 function parView() {
   const p = P[route.p], n = p.r.reduce((x, r) => x + vcount(r), 0);
   let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="books">${I.book}<span>חזרה לספרים</span></button><div class="rt">פרשת ${p.n}</div></header>
-  <div class="card"><div style="text-align:center;color:var(--mute);margin-bottom:6px">ספר ${B[p.b].n} · ${n} פסוקים</div>`;
+  <div class="card"><div style="text-align:center;color:var(--mute);margin-bottom:8px">ספר ${B[p.b].n} · ${n} פסוקים</div><button class="btn chk ${S.pd[route.p] ? "on" : ""}" style="width:100%;margin-bottom:6px" data-pd="${route.p}">${I.check} ${S.pd[route.p] ? "הפרשה סומנה כנלמדה" : "סמן את כל הפרשה כנלמדה"}</button>`;
   p.r.forEach((r, i) => {
     h += `<button class="wl" data-r="p:${route.p}:${i}"><span class="n">${i + 1}</span><span class="x1"><b>עלייה ${ALN[i]} · יום ${DAYN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span><span class="go">‹</span></button>`;
   });
@@ -623,7 +724,7 @@ function toggleDone(w, a) {
 }
 document.addEventListener("click", e => {
   if (e.target.id === "ov") return closeSheet();
-  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-mode],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
   if (!t) return;
   const D = t.dataset;
   if (t.hasAttribute("data-close")) closeSheet();
@@ -639,6 +740,15 @@ document.addEventListener("click", e => {
   else if (t.hasAttribute("data-retry")) { const s = srcOf(route); if (s) { delete txFail[s.r[route.a][0]]; render(); } }
   else if (D.goPar != null) go({ v: "par", p: +D.goPar });
   else if (D.mode) { S.twice = D.mode === "full"; S.targum = D.mode === "full"; S.rashi = true; save(); toast(D.mode === "full" ? "שניים מקרא ואחד תרגום" : "פסוק ורש״י בלבד"); route.keep = true; render(); }
+  else if (D.share) shareApp(D.share);
+  else if (t.hasAttribute("data-installhelp")) openSheet(installHelpHTML());
+  else if (t.hasAttribute("data-refresh")) hardRefresh();
+  else if (D.pd != null) { const i = +D.pd; if (S.pd[i]) delete S.pd[i]; else { S.pd[i] = 1; toast("הפרשה סומנה כנלמדה ✓"); } save(); route.keep = true; render(); }
+  else if (D.bookall != null) {
+    const b = +D.bookall, full = P.every((q, i) => q.b !== b || S.pd[i]);
+    P.forEach((q, i) => { if (q.b === b) { if (full) delete S.pd[i]; else S.pd[i] = 1; } });
+    save(); toast(full ? "הסימון של " + B[b].n + " בוטל" : B[b].n + " סומן כנלמד ✓"); route.keep = true; render();
+  }
   else if (D.bk) backup(D.bk);
   else if (D.go) go(D.go === "day" ? { v: "day", date: iso(today()) } : D.go === "books" ? { v: "books" } : D.go === "progress" ? { v: "progress" } : { v: "day", date: iso(today()) });
   else if (D.par != null) go({ v: "par", p: +D.par });
@@ -670,12 +780,13 @@ document.addEventListener("keydown", e => {
 });
 window.addEventListener("online", () => { for (const k in rsFail) delete rsFail[k]; rsToasted = false; if (route.v === "read") { route.keep = true; render(); } });
 /* ---------- גיבוי ושחזור ---------- */
-const bkData = () => ({ app: "shnayim-mikra", v: 1, done: S.done, bm: S.bm });
+const bkData = () => ({ app: "shnayim-mikra", v: 1, done: S.done, pd: S.pd, bm: S.bm });
 const toCode = o => { const b = new TextEncoder().encode(JSON.stringify(o)); let s = ""; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s); };
 const fromCode = c => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(c), ch => ch.charCodeAt(0))));
 function applyBackup(o) {
   if (!o || o.app !== "shnayim-mikra" || !o.done || typeof o.done !== "object" || Array.isArray(o.done)) throw 0;
   for (const k of Object.keys(o.done)) if (/^\d{4}-\d\d-\d\d:[0-6]$/.test(k) && k.slice(0, 10) in SCH) S.done[k] = 1;
+  if (o.pd && typeof o.pd === "object" && !Array.isArray(o.pd)) for (const k of Object.keys(o.pd)) if (/^\d+$/.test(k) && P[+k]) S.pd[k] = 1;
   if (o.bm && !S.bm) { S.bm = o.bm; validateBm(); }
   save(); toast("הגיבוי שוחזר ✓"); route.keep = true; render();
 }
@@ -696,6 +807,9 @@ function backup(kind) {
   } else if (kind === "load") $("#bkf").click();
 }
 document.addEventListener("change", e => {
+  const nv = e.target.dataset && e.target.dataset.nav;
+  if (nv === "book") { navBook = e.target.value; route.keep = true; render(); return; }
+  if (nv === "par") { if (e.target.value !== "") go({ v: "par", p: +e.target.value }); return; }
   if (e.target.id === "bkf" && e.target.files[0]) { const r = new FileReader(); r.onload = () => { try { applyBackup(JSON.parse(r.result)); } catch (x) { toast("הקובץ לא תקין"); } }; r.readAsText(e.target.files[0]); e.target.value = ""; return; }
   if (e.target.id === "jd") {
     const v = e.target.value; if (!/^\d{4}-\d\d-\d\d$/.test(v)) return;
