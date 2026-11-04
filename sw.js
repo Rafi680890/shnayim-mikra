@@ -1,5 +1,5 @@
-const CACHE = "shnayim-mikra-v10";
-const CORE = ["./", "index.html", "meta.js", "sched.js", "font.woff2", "font-ui.woff2", "logo.png", "manifest.webmanifest", "icon-v3-192.png", "icon-v3-512.png", "icon-v3-180.png"];
+const CACHE = "shnayim-mikra-v11";
+const CORE = ["./", "index.html", "meta.js", "sched.js", "font.woff2?v=2", "font-ui.woff2", "logo.png", "manifest.webmanifest", "icon-v3-192.png", "icon-v3-512.png", "icon-v3-180.png"];
 const DATA_V = "20261027b";   // כמו ב-index.html
 const TXT = [0, 1, 2, 3, 4].map(i => ["tx/" + i + ".json?v=" + DATA_V, "rashi/" + i + ".json?v=" + DATA_V]).flat();
 self.addEventListener("install", e => {
