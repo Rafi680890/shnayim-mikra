@@ -298,11 +298,22 @@ h3.sh{font-size:16px;margin:0 0 8px}
 .tg b,.exs{font-weight:inherit;color:var(--ex)}
 .noex .tg b{color:inherit}
 .exs{font-family:"UIFont",sans-serif;font-weight:800}
+.wla.sp{background:#1db954;border-color:#1db954;color:#07210f}
+.wla.sp span{color:#07210f}
+.wla.big.sp{background:#1db954;border-color:#1db954}
+button.wla{font-family:inherit;cursor:pointer}
+#player{position:fixed;inset-inline:0;bottom:calc(74px + env(safe-area-inset-bottom));z-index:8;margin:0 auto;max-width:720px;background:var(--card);border:2px solid #1db954;border-radius:16px;padding:8px 12px 10px;box-shadow:0 6px 22px rgba(0,0,0,.28)}
+#player[hidden]{display:none}
+#player .pt{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:14px;margin-bottom:6px}
+#player .pt button{border:0;background:var(--bg);width:30px;height:30px;border-radius:50%;font-size:14px;color:var(--ink)}
+#player audio{width:100%;height:38px;display:block}
+body.hasplayer #app{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <div class="ov" id="ov"><div class="sheet" id="sheet" role="dialog" aria-modal="true" tabindex="-1"></div></div>
+<div id="player" hidden></div>
 <div class="toast" id="toast"></div>
 <script src="meta.js"></script>
 <script src="sched.js"></script>
@@ -425,7 +436,15 @@ function pidOf(r) {                                                // הפרשה
   const st = [r[0], r[1], r[2]];
   return P.findIndex(p => cmpT([p.r[0][0], p.r[0][1], p.r[0][2]], st) <= 0 && cmpT(st, [p.r[6][0], p.r[6][3], p.r[6][4]]) <= 0);
 }
+const AUDIO = { 5: k => `audio/toldot-${k + 1}.mp3` };           // אינדקס פרשה (תולדות = 5) -> קובץ שמע לעלייה k
+function audioFor(r) {                                             // הקלטה מובנית לעלייה, אם יש
+  const i = pidOf(r); if (!AUDIO[i]) return null;
+  const k = P[i].r.findIndex(x => x.every((v, j) => v === r[j]));    // רק עלייה שזהה לחלוקה הרגילה של הפרשה
+  return k < 0 ? null : { src: AUDIO[i](k), title: "פרשת " + P[i].n + " · עלייה " + ALN[k] };
+}
 function audioLink(r) {
+  const au = audioFor(r);
+  if (au) return `<button class="wla sp" data-play="${au.src}" data-ttl="${au.title}" aria-label="האזנה לקריאה: ${au.title}">🎧<span>שמע</span></button>`;
   const i = pidOf(r); if (i < 0) return "";
   const q = "קריאה בתורה פרשת " + P[i].n.replace(/־/g, " ") + " נוסח ספרדי ירושלמי";
   return `<a class="wla" href="https://www.youtube.com/results?search_query=${encodeURIComponent(q)}" target="_blank" rel="noopener" aria-label="שמיעת הקריאה בנוסח ספרדי ירושלמי - פרשת ${P[i].n}">🎧<span>שמע</span></a>`;
@@ -552,7 +571,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.04 (v11)";
+const APP_VERSION = "2026.11.08 (v12)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");
@@ -611,7 +630,7 @@ function dayView() {
   if (!s) body = `<div class="card" style="text-align:center">אין נתוני לוח לתאריך הזה (הלוח כולל את התקופה ${hebFmt(parseISO(MINW))} עד ${hebFmt(parseISO(MAXW))}).<div class="nav"><button class="p" data-today>חזרה להיום</button></div></div>`;
   else {
     const r = s.r[a], done = isDone(w, a), bmH = S.bm && S.bm.k === "w:" + w && S.bm.a === a;
-    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${B[r[0]].n}, ${s.n} ${refText(r)}</b><span>${bmH ? `🔖 ממשיכים מפסוק ${gem(S.bm.v)}` : `${vcount(r)} פסוקים`}</span></div>
+    body = `<div class="card al ${done ? "done" : ""}"><div class="t"><small>עלייה ${ALN[a]} · יום ${DAYN[a]}</small><b>${B[r[0]].n}, ${s.n} ${refText(r)}</b><span>${bmH ? `🔖 ממשיכים מפסוק ${gem(S.bm.v)}` : `${vcount(r)} פסוקים`}</span>${audioLink(r).replace('class="wla', 'class="wla big')}</div>
       <div class="btns"><button class="btn read" data-r="w:${w}:${a}"${bmH ? " data-resume" : ""}><span class="ic">${I.openbook}</span>${bmH ? "המשך מפסוק " + gem(S.bm.v) : "לקריאה"}</button><button class="btn chk ${done ? "on" : ""}" data-toggle="${w}:${a}">${I.check} ${done ? "למדתי" : "סמן כנלמד"}</button></div></div>`;
     const wd = weekDone(w), pct = Math.round(wd / 7 * 100), t = totals();
     body += `<div class="card"><h3 class="sh">${I.cal} ${ttl(s)} · כל העליות</h3>` +
@@ -740,6 +759,17 @@ function settingsHTML() {
   <div class="themes" style="margin-top:8px">${th.map(([k, n, c]) => `<button class="${S.theme === k ? "on" : ""}" data-th="${k}"><i style="background:${c}"></i>${n}</button>`).join("")}</div>`;
 }
 
+/* ---------- נגן שמע ---------- */
+function playAudio(src, title) {
+  const box = $("#player"), cur = box.querySelector("audio");
+  if (cur && cur.getAttribute("src") === src) { cur.paused ? cur.play().catch(() => {}) : cur.pause(); return; }   // לחיצה חוזרת: עצירה/המשך
+  box.innerHTML = `<div class="pt"><b>🎧 ${title}</b><button data-pclose aria-label="סגור את הנגן">✕</button></div><audio controls autoplay preload="auto" src="${src}"></audio>`;
+  box.hidden = false; document.body.classList.add("hasplayer");
+  const au = box.querySelector("audio");
+  au.addEventListener("error", () => { toast("לא הצלחנו לנגן את ההקלטה - בדוק חיבור לאינטרנט"); });
+  au.play().catch(() => {});
+}
+function closePlayer() { const box = $("#player"); const au = box.querySelector("audio"); if (au) au.pause(); box.innerHTML = ""; box.hidden = true; document.body.classList.remove("hasplayer"); }
 /* ---------- אירועים ---------- */
 function toggleDone(w, a) {
   const k = dk(w, a); if (S.done[k]) delete S.done[k]; else { S.done[k] = 1; toast("סומן כנלמד ✓"); }
@@ -747,7 +777,7 @@ function toggleDone(w, a) {
 }
 document.addEventListener("click", e => {
   if (e.target.id === "ov") return closeSheet();
-  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-play],[data-pclose],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
   if (!t) return;
   const D = t.dataset;
   if (t.hasAttribute("data-close")) closeSheet();
@@ -763,6 +793,8 @@ document.addEventListener("click", e => {
   else if (t.hasAttribute("data-retry")) { const s = srcOf(route); if (s) { delete txFail[s.r[route.a][0]]; render(); } }
   else if (D.goPar != null) go({ v: "par", p: +D.goPar });
   else if (D.mode) { S.twice = D.mode === "full"; S.targum = D.mode === "full"; S.rashi = true; save(); toast(D.mode === "full" ? "שניים מקרא ואחד תרגום" : "פסוק ורש״י בלבד"); route.keep = true; render(); }
+  else if (D.play) playAudio(D.play, D.ttl);
+  else if (t.hasAttribute("data-pclose")) closePlayer();
   else if (D.share) shareApp(D.share);
   else if (t.hasAttribute("data-installhelp")) openSheet(installHelpHTML());
   else if (t.hasAttribute("data-refresh")) hardRefresh();
