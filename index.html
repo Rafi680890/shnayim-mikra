@@ -308,6 +308,12 @@ button.wla{font-family:inherit;cursor:pointer}
 #player .pt button{border:0;background:var(--bg);width:30px;height:30px;border-radius:50%;font-size:14px;color:var(--ink)}
 #player audio{width:100%;height:38px;display:block}
 body.hasplayer #app{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
+#player .pspd{margin-top:6px;border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:5px 14px;font-weight:700;font-size:13px;color:var(--ink)}
+#player .pspeeds{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+#player .pspeeds[hidden]{display:none}
+#player .pspeeds button{flex:1;min-width:52px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 4px;font-weight:700;font-size:13px;color:var(--ink)}
+#player .pspeeds button.on{background:#1db954;border-color:#1db954;color:#07210f}
+body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 </style>
 </head>
 <body>
@@ -338,7 +344,7 @@ function validateBm() {
   const rr = srcOk && Number.isInteger(b.a) && b.a >= 0 && b.a <= 6 ? (b.k[0] === "w" ? SCH[b.k.slice(2)] : P[+b.k.slice(2)]).r[b.a] : null;
   if (!(rr && Number.isInteger(b.c) && Number.isInteger(b.v) && (b.c > rr[1] || b.v >= rr[2]) && (b.c < rr[3] || b.v <= rr[4]) && b.c >= rr[1] && b.c <= rr[3] && b.v >= 1)) S.bm = null;
 }
-let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, rashi: true, twice: true, explain: true, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
+let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, rashi: true, twice: true, explain: true, rate: 1, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
 try {
   const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw 0;
@@ -352,7 +358,7 @@ try {
   S.hintBm = !!S.hintBm;
   if (!(Number.isFinite(S.fs) && S.fs >= 16 && S.fs <= 48)) S.fs = 26;
   if (!["light", "sepia", "dark", "auto"].includes(S.theme)) S.theme = "light";
-  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.twice = S.twice !== false; S.explain = S.explain !== false; S.targum = S.targum !== false;
+  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.twice = S.twice !== false; S.explain = S.explain !== false; if (![0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].includes(S.rate)) S.rate = 1; S.targum = S.targum !== false;
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 const dk = (w, a) => w + ":" + a;
@@ -436,7 +442,8 @@ function pidOf(r) {                                                // הפרשה
   const st = [r[0], r[1], r[2]];
   return P.findIndex(p => cmpT([p.r[0][0], p.r[0][1], p.r[0][2]], st) <= 0 && cmpT(st, [p.r[6][0], p.r[6][3], p.r[6][4]]) <= 0);
 }
-const AUDIO = { 5: k => `audio/toldot-${k + 1}.mp3` };           // אינדקס פרשה (תולדות = 5) -> קובץ שמע לעלייה k
+const AUDIO_SLUG = { 5: "toldot", 6: "vayetze", 7: "vayishlach", 8: "vayeshev", 9: "miketz", 10: "vayigash", 11: "vayechi" };   // אינדקס פרשה -> שם קבצי השמע
+const AUDIO = Object.fromEntries(Object.entries(AUDIO_SLUG).map(([i, sl]) => [i, k => `audio/${sl}-${k + 1}.mp3`]));
 function audioFor(r) {                                             // הקלטה מובנית לעלייה, אם יש
   const i = pidOf(r); if (!AUDIO[i]) return null;
   const k = P[i].r.findIndex(x => x.every((v, j) => v === r[j]));    // רק עלייה שזהה לחלוקה הרגילה של הפרשה
@@ -571,7 +578,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.08 (v12)";
+const APP_VERSION = "2026.11.11 (v13)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");
@@ -760,12 +767,24 @@ function settingsHTML() {
 }
 
 /* ---------- נגן שמע ---------- */
+const RATES = [0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+const rateLabel = r => (r === 1 ? "רגילה" : "×" + r);
+function setRate(r) {
+  S.rate = r; save();
+  const au = $("#player audio"); if (au) au.playbackRate = r;
+  const sp = $("#player .pspeeds"); if (sp) { sp.hidden = true; sp.querySelectorAll("button").forEach(b => b.classList.toggle("on", +b.dataset.rate === r)); }
+  const b = $("#player .pspd"); if (b) b.textContent = "⏱ מהירות: " + rateLabel(r);
+}
 function playAudio(src, title) {
   const box = $("#player"), cur = box.querySelector("audio");
   if (cur && cur.getAttribute("src") === src) { cur.paused ? cur.play().catch(() => {}) : cur.pause(); return; }   // לחיצה חוזרת: עצירה/המשך
-  box.innerHTML = `<div class="pt"><b>🎧 ${title}</b><button data-pclose aria-label="סגור את הנגן">✕</button></div><audio controls autoplay preload="auto" src="${src}"></audio>`;
+  box.innerHTML = `<div class="pt"><b>🎧 ${title}</b><button data-pclose aria-label="סגור את הנגן">✕</button></div><audio controls autoplay preload="auto" src="${src}"></audio>
+    <button class="pspd" data-pspd aria-label="מהירות השמעה">⏱ מהירות: ${rateLabel(S.rate)}</button>
+    <div class="pspeeds" hidden>${RATES.map(r => `<button data-rate="${r}" class="${r === S.rate ? "on" : ""}">${r === 1 ? "רגילה" : r + "×"}</button>`).join("")}</div>`;
   box.hidden = false; document.body.classList.add("hasplayer");
   const au = box.querySelector("audio");
+  au.playbackRate = S.rate;
+  au.addEventListener("loadedmetadata", () => { au.playbackRate = S.rate; });
   au.addEventListener("error", () => { toast("לא הצלחנו לנגן את ההקלטה - בדוק חיבור לאינטרנט"); });
   au.play().catch(() => {});
 }
@@ -777,7 +796,7 @@ function toggleDone(w, a) {
 }
 document.addEventListener("click", e => {
   if (e.target.id === "ov") return closeSheet();
-  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-play],[data-pclose],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-play],[data-pclose],[data-pspd],[data-rate],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
   if (!t) return;
   const D = t.dataset;
   if (t.hasAttribute("data-close")) closeSheet();
@@ -795,6 +814,8 @@ document.addEventListener("click", e => {
   else if (D.mode) { S.twice = D.mode === "full"; S.targum = D.mode === "full"; S.rashi = true; save(); toast(D.mode === "full" ? "שניים מקרא ואחד תרגום" : "פסוק ורש״י בלבד"); route.keep = true; render(); }
   else if (D.play) playAudio(D.play, D.ttl);
   else if (t.hasAttribute("data-pclose")) closePlayer();
+  else if (t.hasAttribute("data-pspd")) { const sp = $("#player .pspeeds"); sp.hidden = !sp.hidden; }
+  else if (D.rate && t.closest("#player")) setRate(+D.rate);
   else if (D.share) shareApp(D.share);
   else if (t.hasAttribute("data-installhelp")) openSheet(installHelpHTML());
   else if (t.hasAttribute("data-refresh")) hardRefresh();
