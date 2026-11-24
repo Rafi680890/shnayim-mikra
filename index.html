@@ -9,7 +9,7 @@
 <link rel="apple-touch-icon" href="icon-v3-180.png">
 <title>שניים מקרא ואחד תרגום</title>
 <style>
-@font-face{font-family:"TanachFont";src:url(font-tx4.woff2) format("woff2");font-weight:100 900;font-stretch:62% 100%;font-display:swap}
+@font-face{font-family:"TanachFont";src:url(font-tx5.woff2) format("woff2");font-weight:100 900;font-stretch:62% 100%;font-display:swap}
 @font-face{font-family:"UIFont";src:url(font-ui.woff2) format("woff2");font-weight:100 900;font-display:swap}
 :root{--bg:#f4efe4;--card:#fffdf8;--ink:#23262d;--mute:#6d6a62;--accent:#14305a;--ok:#22875a;--line:#e6dec9;--mark:#fff1b8;--fs:26px;
  --hld:#fde2a0;--hlz:#c6ecd6;--bmc:#9b2c3d;--bmbg:rgba(155,44,61,.10);--bmflash:rgba(155,44,61,.32);--c1:#b4572b;--c2:#1b7f8c;--c3:#6a3fa0;--gold:#d9a441;--hero1:#0f2750;--hero2:#1b5e86;--hero3:#1b8a94}
@@ -315,11 +315,11 @@ body.hasplayer #app{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
 #player .pspeeds button.on{background:#1db954;border-color:#1db954;color:#07210f}
 body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 
-@font-face{font-family:"NkS";src:url(font-nk4-s.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkD";src:url(font-nk4-d.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkSD";src:url(font-nk4-sd.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkQ";src:url(font-nk4-q.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkDQ";src:url(font-nk4-dq.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkS";src:url(font-nk5-s.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkD";src:url(font-nk5-d.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkSD";src:url(font-nk5-sd.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkQ";src:url(font-nk5-q.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkDQ";src:url(font-nk5-dq.woff2) format("woff2");font-display:swap}
 .nk-s,.nk-d,.nk-sd,.nk-q,.nk-dq{font-style:normal}
 .nk-s{font-family:"NkS","TanachFont",serif}.nk-d{font-family:"NkD","TanachFont",serif}.nk-sd{font-family:"NkSD","TanachFont",serif}.nk-q{font-family:"NkQ","TanachFont",serif}.nk-dq{font-family:"NkDQ","TanachFont",serif}
 .nk-off .nk-s,.nk-off .nk-d,.nk-off .nk-sd,.nk-off .nk-q,.nk-off .nk-dq{font-family:inherit}
@@ -770,7 +770,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.24 (v19)";
+const APP_VERSION = "2026.11.24 (v20)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");

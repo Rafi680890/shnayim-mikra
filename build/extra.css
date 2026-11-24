@@ -187,11 +187,11 @@ body.hasplayer #app{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
 #player .pspeeds button.on{background:#1db954;border-color:#1db954;color:#07210f}
 body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 
-@font-face{font-family:"NkS";src:url(font-nk4-s.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkD";src:url(font-nk4-d.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkSD";src:url(font-nk4-sd.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkQ";src:url(font-nk4-q.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkDQ";src:url(font-nk4-dq.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkS";src:url(font-nk5-s.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkD";src:url(font-nk5-d.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkSD";src:url(font-nk5-sd.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkQ";src:url(font-nk5-q.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkDQ";src:url(font-nk5-dq.woff2) format("woff2");font-display:swap}
 .nk-s,.nk-d,.nk-sd,.nk-q,.nk-dq{font-style:normal}
 .nk-s{font-family:"NkS","TanachFont",serif}.nk-d{font-family:"NkD","TanachFont",serif}.nk-sd{font-family:"NkSD","TanachFont",serif}.nk-q{font-family:"NkQ","TanachFont",serif}.nk-dq{font-family:"NkDQ","TanachFont",serif}
 .nk-off .nk-s,.nk-off .nk-d,.nk-off .nk-sd,.nk-off .nk-q,.nk-off .nk-dq{font-family:inherit}

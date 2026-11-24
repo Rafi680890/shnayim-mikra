@@ -1,5 +1,5 @@
 
-@font-face{font-family:"TanachFont";src:url(font-tx4.woff2) format("woff2");font-weight:100 900;font-stretch:62% 100%;font-display:swap}
+@font-face{font-family:"TanachFont";src:url(font-tx5.woff2) format("woff2");font-weight:100 900;font-stretch:62% 100%;font-display:swap}
 @font-face{font-family:"UIFont";src:url(font-ui.woff2) format("woff2");font-weight:100 900;font-display:swap}
 :root{--bg:#f4efe4;--card:#fffdf8;--ink:#23262d;--mute:#6d6a62;--accent:#14305a;--ok:#22875a;--line:#e6dec9;--mark:#fff1b8;--fs:26px;
  --hld:#fde2a0;--hlz:#c6ecd6;--bmc:#9b2c3d;--bmbg:rgba(155,44,61,.10);--bmflash:rgba(155,44,61,.32);--c1:#b4572b;--c2:#1b7f8c;--c3:#6a3fa0;--gold:#d9a441;--hero1:#0f2750;--hero2:#1b5e86;--hero3:#1b8a94}
