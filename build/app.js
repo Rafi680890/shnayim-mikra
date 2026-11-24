@@ -18,7 +18,7 @@ function validateBm() {
   const rr = srcOk && Number.isInteger(b.a) && b.a >= 0 && b.a <= 6 ? (b.k[0] === "w" ? SCH[b.k.slice(2)] : P[+b.k.slice(2)]).r[b.a] : null;
   if (!(rr && Number.isInteger(b.c) && Number.isInteger(b.v) && (b.c > rr[1] || b.v >= rr[2]) && (b.c < rr[3] || b.v <= rr[4]) && b.c >= rr[1] && b.c <= rr[3] && b.v >= 1)) S.bm = null;
 }
-let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, nk: true, rashi: true, twice: true, explain: true, rate: 1, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
+let S = { v: 1, done: {}, pd: {}, pdAuto: {}, cups: 0, autonext: true, bm: null, hintBm: false, nk: true, rashi: true, twice: true, explain: true, rate: 1, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
 try {
   const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw 0;
@@ -28,6 +28,9 @@ try {
   const ok = /^\d{4}-\d\d-\d\d:[0-6]$/;
   S.pd = Object.fromEntries(Object.keys(S.pd && typeof S.pd === "object" && !Array.isArray(S.pd) ? S.pd : {}).filter(k => /^\d+$/.test(k) && P[+k]).map(k => [k, 1]));
   S.done = Object.fromEntries(Object.keys(S.done && typeof S.done === "object" && !Array.isArray(S.done) ? S.done : {}).filter(k => ok.test(k) && k.slice(0, 10) in SCH).map(k => [k, 1]));
+  S.pdAuto = Object.fromEntries(Object.entries(S.pdAuto && typeof S.pdAuto === "object" && !Array.isArray(S.pdAuto) ? S.pdAuto : {}).filter(([k, w]) => /^\d+$/.test(k) && P[+k] && S.pd[k] && w in SCH));
+  S.cups = Number.isInteger(S.cups) && S.cups >= 0 && S.cups < 1000 ? S.cups : 0;
+  S.autonext = S.autonext !== false;
   validateBm();
   S.hintBm = !!S.hintBm;
   if (!(Number.isFinite(S.fs) && S.fs >= 16 && S.fs <= 48)) S.fs = 26;
@@ -41,6 +44,21 @@ const bmKey = rt => rt.w ? "w:" + rt.w : "p:" + rt.p;
 const bmAt = (rt, c, v) => !!S.bm && S.bm.k === bmKey(rt) && S.bm.a === rt.a && (c === undefined || (S.bm.c === c && S.bm.v === v));
 const isDone = (w, a) => !!S.done[dk(w, a)];
 const weekDone = w => { let n = 0; for (let a = 0; a < 7; a++) if (isDone(w, a)) n++; return n; };
+/* שבוע שסומנו בו כל 7 העליות => הפרשות שהוא מכסה במלואן מסומנות כנלמדו (ובביטול סימון - רק אם הסימון בא מהשבוע הזה) */
+const cmp3 = (x, y) => x[0] - y[0] || x[1] - y[1] || x[2] - y[2];
+function weekParashot(w) {
+  const s = SCH[w]; if (!s) return [];
+  const a = [s.r[0][0], s.r[0][1], s.r[0][2]], z = [s.r[6][0], s.r[6][3], s.r[6][4]];
+  return P.map((p, i) => i).filter(i => cmp3([P[i].r[0][0], P[i].r[0][1], P[i].r[0][2]], a) >= 0 && cmp3([P[i].r[6][0], P[i].r[6][3], P[i].r[6][4]], z) <= 0);
+}
+function syncWeek(w) {
+  const full = weekDone(w) === 7;
+  weekParashot(w).forEach(i => {
+    if (full) { if (!S.pd[i]) { S.pd[i] = 1; S.pdAuto[i] = w; } }
+    else if (S.pdAuto[i] === w) { delete S.pd[i]; delete S.pdAuto[i]; }
+  });
+}
+{ const ws = new Set(Object.keys(S.done).map(k => k.slice(0, 10))); ws.forEach(syncWeek); }   // שבועות שהושלמו לפני העדכון
 try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
 const darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
 function applyTheme() { document.documentElement.dataset.theme = S.theme === "auto" ? (darkMQ && darkMQ.matches ? "dark" : "light") : S.theme; }
@@ -142,9 +160,9 @@ function go(r, replace) { route = r; history[replace ? "replaceState" : "pushSta
 function fromHash() {
   if (location.hash === lastHash) return; const first = lastHash === null; lastHash = location.hash;
   const parts = location.hash.slice(1).split("/"), v = parts[0];
-  if (v === "read" && parts[1] === "w" && SCH[parts[2]] && parts[3] >= 0 && parts[3] <= 6 && parts[3] !== "") route = { v, w: parts[2], a: +parts[3] };
-  else if (v === "read" && parts[1] === "p" && P[+parts[2]] && parts[3] >= 0 && parts[3] <= 6 && parts[3] !== "") route = { v, p: +parts[2], a: +parts[3] };
-  else if (v === "par" && P[+parts[1]]) route = { v, p: +parts[1] };
+  if (v === "read" && parts[1] === "w" && SCH[parts[2]] && /^[0-6]$/.test(parts[3])) route = { v, w: parts[2], a: +parts[3] };
+  else if (v === "read" && parts[1] === "p" && /^\d+$/.test(parts[2]) && P[+parts[2]] && /^[0-6]$/.test(parts[3])) route = { v, p: +parts[2], a: +parts[3] };
+  else if (v === "par" && /^\d+$/.test(parts[1]) && P[+parts[1]]) route = { v, p: +parts[1] };
   else if (v === "books" || v === "progress") route = { v };
   else route = { v: "day", date: !first && /^\d{4}-\d\d-\d\d$/.test(parts[1] || "") ? parts[1] : iso(today()) };
   closeSheet(); render();
@@ -164,9 +182,9 @@ function loadText(b) {
 window.addEventListener("online", () => { for (const k in txFail) delete txFail[k]; if (route.v === "read") render(); });
 const RS = {}, rsLoading = {}, rsFail = {}; let rsToasted = false;
 function loadRashi(b) {
-  if (RS[b] || rsLoading[b] || rsFail[b]) return; rsLoading[b] = 1;
+  if (RS[b] || rsLoading[b] || (rsFail[b] && Date.now() - rsFail[b] < 20000)) return; delete rsFail[b]; rsLoading[b] = 1;
   fetch("rashi/" + b + ".json?v=" + DATA_V).then(r => { if (!r.ok) throw 0; return r.json(); }).then(j => { RS[b] = j; })
-    .catch(() => { rsFail[b] = 1; if (!rsToasted) { rsToasted = true; toast("פירוש רש״י לא נטען - נדרש חיבור לאינטרנט"); } })
+    .catch(() => { rsFail[b] = Date.now(); if (!rsToasted) { rsToasted = true; toast("פירוש רש״י לא נטען - נדרש חיבור לאינטרנט"); } })
     .finally(() => { delete rsLoading[b]; const sr = route.v === "read" ? srcOf(route) : null; if (sr && sr.r[route.a][0] === b && RS[b]) { route.keep = true; render(); } });
 }
 const NIK = /[\u0591-\u05C7\u034f]/g;
@@ -255,7 +273,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.24 (v22)";
+const APP_VERSION = "2026.11.25 (v14)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");
@@ -290,8 +308,9 @@ function weekStrip(d, w, isToday) {
   return `<div class="strip">${cells}</div><div class="weeknav"><button data-week="-1">› שבוע קודם</button><button class="td ${isToday ? "on" : ""}" data-today ${isToday ? 'aria-current="date"' : ""}>היום</button><button data-week="1">שבוע הבא ‹</button></div><div class="swrow"><span>היום מתחלף:</span><button class="sg ${S.sunset !== false ? "on" : ""}" data-sunset="1">🌙 בשקיעה</button><button class="sg ${S.sunset === false ? "on" : ""}" data-sunset="0">🕛 בחצות</button></div>`;
 }
 function totals() {
-  const ws = {}; Object.keys(S.done).forEach(k => { ws[k.slice(0, 10)] = (ws[k.slice(0, 10)] || 0) + 1; });
-  return { al: Object.keys(S.done).length, full: Object.values(ws).filter(n => n === 7).length };
+  let al = 7 * Object.keys(S.pd).length;                            // כל פרשה מסומנת = 7 עליות
+  for (const k of Object.keys(S.done)) { const i = pidOf(SCH[k.slice(0, 10)].r[+k[11]]); if (!S.pd[i]) al++; }   // עליה בודדת שפרשתה עוד לא מסומנת
+  return { al, full: Object.keys(S.pd).length, cups: S.cups };
 }
 const modeOf = () => S.twice && S.targum ? "full" : !S.twice && !S.targum && S.rashi ? "rashi" : "";
 function modeCard() {
@@ -320,7 +339,7 @@ function dayView() {
     body += `<div class="card"><h3 class="sh">${I.cal} ${ttl(s)} · כל העליות</h3>` +
       s.r.map((r, i) => `<div class="wlw"><button class="wl ${i === a ? "sel" : ""} ${isDone(w, i) ? "done" : ""}" data-day="${iso(dateOf(w, i))}"><span class="n">${isDone(w, i) ? "✓" : i + 1}</span><span class="x1"><b>יום ${DAYN[i]} · עלייה ${ALN[i]}</b><span>${refText(r, true)} · ${vcount(r)} פסוקים</span></span></button>${audioLink(r)}<button class="wlc ${isDone(w, i) ? "on" : ""}" data-toggle="${w}:${i}" aria-pressed="${isDone(w, i)}" aria-label="${isDone(w, i) ? "בטל סימון" : "סמן כנלמד"}: יום ${DAYN[i]}">${isDone(w, i) ? "✓ למדתי" : "☐ סמן"}</button></div>`).join("") + `</div>
     <div class="card prog"><div class="ring" style="--p:${pct}"><i>${wd}/7</i></div><div style="flex:1"><b style="font-size:18px">התקדמות השבוע</b><div style="color:var(--mute);margin:2px 0 8px">${wd} מתוך 7 עליות נלמדו</div><div class="bar"><i style="width:${pct}%"></i></div></div></div>
-    <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
+    <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>פרשות שלמות</div><div><b>🏆 ${t.cups}</b>סיומי תורה</div></div>`;
   }
   const mn = iso(addDays(parseISO(MINW), -6));
   let bmc = "";
@@ -341,7 +360,7 @@ function progressView() {
   const cv = coverage(), t = totals();
   let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="day">${I.home}<span>חזרה לדף הבית</span></button><div class="rt">התקדמות</div></header>
   <div class="card prog stick"><div class="ring" style="--p:${cv.pct}"><i>${cv.pct}%</i></div><div style="flex:1"><b style="font-size:18px">התורה כולה</b><div style="color:var(--mute);margin:2px 0 8px">${cv.g} מתוך ${cv.all} פסוקים נלמדו</div><div class="bar"><i style="width:${cv.pct}%"></i></div></div></div>
-  <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
+  <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>פרשות שלמות</div><div><b>🏆 ${t.cups}</b>סיומי תורה</div></div>`;
   B.forEach((bk, b) => {
     const p = cv.got[b] / cv.tot[b] * 100;
     const full = P.every((q, i) => q.b !== b || S.pd[i]);
@@ -399,7 +418,7 @@ function readView() {
   const done = s.w && isDone(s.w, a);
   const bar = `<div class="rbar"><button data-prev ${a === 0 ? "disabled" : ""}>› ${a > 0 ? "עלייה " + ALN[a - 1] : "הקודמת"}</button>${s.w ? `<button class="learn ${done ? "on" : ""}" data-toggle="${s.w}:${a}">${done ? "✓ למדתי" : "סמן כנלמד"}</button>` : ""}<button class="next" data-next ${a === 6 ? "disabled" : ""}>${a < 6 ? "עלייה " + ALN[a + 1] : "הבאה"} ‹</button></div>`;
   const hint = !S.hintBm && !S.bm ? `<div class="hint"><div>💡 <b>עוצרים באמצע?</b> לחצו על מספר הפסוק הבא שעוד לא קראתם (עם סימן הסימניה). יסומן קו מעליו, ובפעם הבאה תמשיכו בדיוק משם.</div><button data-hint>הבנתי</button></div>` : "";
-  return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b>${audioLink(r).replace('class="wla"', 'class="wla big"')}</div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${S.targum && S.explain ? '<div class="legend"><span><b class="exs">מילה צבועה</b> בתרגום = אונקלוס מפרש ולא מתרגם</span></div>' : ""}${hint}<div class="text ${S.explain ? "" : "noex"}" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
+  return `${head}<div class="rsub">${dayNm}עלייה ${ALN[a]}<b>${refText(r, true)}</b>${audioLink(r).replace('class="wla"', 'class="wla big"')}</div>${S.rashi ? '<div class="legend"><span><i style="background:var(--hld)"></i>פירוש רש״י</span><span>· לחצו על מילה מסומנת לפירוש</span></div>' : ""}${S.rashi && rsFail[bi] ? '<div class="legend"><button class="lo" data-rsretry>רש״י לא נטען · נסה שוב</button></div>' : ""}${S.targum && S.explain ? '<div class="legend"><span><b class="exs">מילה צבועה</b> בתרגום = אונקלוס מפרש ולא מתרגם</span></div>' : ""}${hint}<div class="text ${S.explain ? "" : "noex"}" style="--fs:${S.fs}px">${t}</div>${footer(true)}${bar}`;
 }
 function render() {
   const sy = window.scrollY, app = $("#app");
@@ -439,6 +458,7 @@ function settingsHTML() {
   <div class="row"><span>פירוש רש״י <i style="display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--hld);vertical-align:middle"></i></span>${sw("rashi", S.rashi)}</div>
   <div class="row"><span>כל פסוק פעמיים <small style="color:var(--mute)">(שניים מקרא)</small></span>${sw("twice", S.twice)}</div>
   <div class="row"><span>תרגום אונקלוס אחרי כל פסוק</span>${sw("targum", S.targum)}</div>
+  <div class="row"><span>שמע: מעבר אוטומטי לעלייה הבאה</span>${sw("autonext", S.autonext)}</div>
   <div class="row"><span>צביעת מקומות שאונקלוס מפרש <small style="color:var(--mute)">(ולא מתרגם)</small></span>${sw("explain", S.explain)}</div>
   <div class="row"><span>היום מתחלף בשקיעה <small style="color:var(--mute)">(כמו התאריך העברי)</small></span>${sw("sunset", S.sunset)}</div>
   <div style="margin-top:12px;font-weight:700">מצב תצוגה</div>
@@ -465,18 +485,30 @@ function playAudio(src, title) {
   const au = box.querySelector("audio");
   au.playbackRate = S.rate;
   au.addEventListener("loadedmetadata", () => { au.playbackRate = S.rate; });
+  au.addEventListener("ended", () => {                               // סוף הקלטה: ממשיכים לעלייה הבאה של אותה פרשה
+    const m = /^(.*-)(\d)\.mp3$/.exec(src); if (!S.autonext || !m || +m[2] >= 7) return;
+    const n = +m[2] + 1; playAudio(m[1] + n + ".mp3", title.replace(ALN[n - 2], ALN[n - 1])); toast("ממשיך לעלייה " + ALN[n - 1]);
+  });
   au.addEventListener("error", () => { toast("לא הצלחנו לנגן את ההקלטה - בדוק חיבור לאינטרנט"); });
   au.play().catch(() => {});
 }
 function closePlayer() { const box = $("#player"); const au = box.querySelector("audio"); if (au) au.pause(); box.innerHTML = ""; box.hidden = true; document.body.classList.remove("hasplayer"); }
 /* ---------- אירועים ---------- */
+let lastCycle = null;
+function checkCycle() {                                              // כל 54 הפרשות מסומנות: גביע אחד, ואיפוס להתחלה חדשה (עם ביטול)
+  if (Object.keys(S.pd).length < P.length) return false;
+  lastCycle = JSON.parse(JSON.stringify({ done: S.done, pd: S.pd, pdAuto: S.pdAuto, bm: S.bm, cups: S.cups }));
+  S.cups++; S.done = {}; S.pd = {}; S.pdAuto = {}; S.bm = null; save();
+  openSheet(`<button class="x" data-close aria-label="סגור">✕</button><div style="text-align:center;clear:both"><div style="font-size:72px;line-height:1.1">🏆</div><h3 class="sh" style="justify-content:center;margin-top:6px">חזק וברוך! סיימת את כל התורה</h3><p style="margin:4px 0 14px">זה סיום מספר <b>${S.cups}</b>. נרשם לך גביע, וההתקדמות אופסה כדי להתחיל לימוד חדש.</p><div class="nav"><button class="p" data-close>המשך ללמוד</button><button data-cycleundo>ביטול - החזר את ההתקדמות</button></div></div>`);
+  return true;
+}
 function toggleDone(w, a) {
   const k = dk(w, a); if (S.done[k]) delete S.done[k]; else { S.done[k] = 1; toast("סומן כנלמד ✓"); }
-  save(); route.keep = true; render();
+  syncWeek(w); save(); checkCycle(); route.keep = true; render();
 }
 document.addEventListener("click", e => {
   if (e.target.id === "ov") return closeSheet();
-  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-play],[data-pclose],[data-pspd],[data-rate],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-rsretry],[data-cycleundo],[data-play],[data-pclose],[data-pspd],[data-rate],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
   if (!t) return;
   const D = t.dataset;
   if (t.hasAttribute("data-close")) closeSheet();
@@ -489,6 +521,7 @@ document.addEventListener("click", e => {
   else if (D.bm) { const [c, v] = D.bm.split(":").map(Number); if (bmAt(route, c, v)) { S.bm = null; toast("הסימניה הוסרה"); } else { S.bm = { k: bmKey(route), a: route.a, c, v }; route.resume = null; S.hintBm = true; toast(`🔖 סומן: עד כאן למדתי · פסוק ${gem(v)}`); } save(); route.keep = true; render(); }
   else if (t.hasAttribute("data-bmclear")) { S.bm = null; save(); toast("הסימניה הוסרה"); route.keep = true; render(); }
   else if (t.hasAttribute("data-hint")) { S.hintBm = true; save(); route.keep = true; render(); }
+  else if (t.hasAttribute("data-rsretry")) { const sr = srcOf(route); if (sr) { delete rsFail[sr.r[route.a][0]]; rsToasted = false; route.keep = true; render(); } }
   else if (t.hasAttribute("data-retry")) { const s = srcOf(route); if (s) { delete txFail[s.r[route.a][0]]; render(); } }
   else if (D.goPar != null) go({ v: "par", p: +D.goPar });
   else if (D.mode) { S.twice = D.mode === "full"; S.targum = D.mode === "full"; S.rashi = true; save(); toast(D.mode === "full" ? "שניים מקרא ואחד תרגום" : "פסוק ורש״י בלבד"); route.keep = true; render(); }
@@ -499,11 +532,12 @@ document.addEventListener("click", e => {
   else if (D.share) shareApp(D.share);
   else if (t.hasAttribute("data-installhelp")) openSheet(installHelpHTML());
   else if (t.hasAttribute("data-refresh")) hardRefresh();
-  else if (D.pd != null) { const i = +D.pd; if (S.pd[i]) delete S.pd[i]; else { S.pd[i] = 1; toast("הפרשה סומנה כנלמדה ✓"); } save(); route.keep = true; render(); }
+  else if (D.pd != null) { const i = +D.pd; delete S.pdAuto[i]; if (S.pd[i]) delete S.pd[i]; else { S.pd[i] = 1; toast("הפרשה סומנה כנלמדה ✓"); } save(); checkCycle(); route.keep = true; render(); }
+  else if (t.hasAttribute("data-cycleundo")) { if (lastCycle) { Object.assign(S, lastCycle); lastCycle = null; save(); closeSheet(); toast("ההתקדמות הוחזרה"); route.keep = true; render(); } }
   else if (D.bookall != null) {
     const b = +D.bookall, full = P.every((q, i) => q.b !== b || S.pd[i]);
-    P.forEach((q, i) => { if (q.b === b) { if (full) delete S.pd[i]; else S.pd[i] = 1; } });
-    save(); toast(full ? "הסימון של " + B[b].n + " בוטל" : B[b].n + " סומן כנלמד ✓"); route.keep = true; render();
+    P.forEach((q, i) => { if (q.b === b) { delete S.pdAuto[i]; if (full) delete S.pd[i]; else S.pd[i] = 1; } });
+    save(); checkCycle(); toast(full ? "הסימון של " + B[b].n + " בוטל" : B[b].n + " סומן כנלמד ✓"); route.keep = true; render();
   }
   else if (D.bk) backup(D.bk);
   else if (D.go) go(D.go === "day" ? { v: "day", date: iso(today()) } : D.go === "books" ? { v: "books" } : D.go === "progress" ? { v: "progress" } : { v: "day", date: iso(today()) });
@@ -536,14 +570,17 @@ document.addEventListener("keydown", e => {
 });
 window.addEventListener("online", () => { for (const k in rsFail) delete rsFail[k]; rsToasted = false; if (route.v === "read") { route.keep = true; render(); } });
 /* ---------- גיבוי ושחזור ---------- */
-const bkData = () => ({ app: "shnayim-mikra", v: 1, done: S.done, pd: S.pd, bm: S.bm });
+const bkData = () => ({ app: "shnayim-mikra", v: 1, done: S.done, pd: S.pd, cups: S.cups, bm: S.bm });
 const toCode = o => { const b = new TextEncoder().encode(JSON.stringify(o)); let s = ""; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s); };
 const fromCode = c => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(c), ch => ch.charCodeAt(0))));
 function applyBackup(o) {
   if (!o || o.app !== "shnayim-mikra" || !o.done || typeof o.done !== "object" || Array.isArray(o.done)) throw 0;
-  for (const k of Object.keys(o.done)) if (/^\d{4}-\d\d-\d\d:[0-6]$/.test(k) && k.slice(0, 10) in SCH) S.done[k] = 1;
-  if (o.pd && typeof o.pd === "object" && !Array.isArray(o.pd)) for (const k of Object.keys(o.pd)) if (/^\d+$/.test(k) && P[+k]) S.pd[k] = 1;
-  if (o.bm && !S.bm) { S.bm = o.bm; validateBm(); }
+  if (!confirm("השחזור יחליף את ההתקדמות, הסימניה וסיומי התורה שבמכשיר בנתוני הגיבוי. להמשיך?")) return;
+  S.done = Object.fromEntries(Object.keys(o.done).filter(k => /^\d{4}-\d\d-\d\d:[0-6]$/.test(k) && k.slice(0, 10) in SCH).map(k => [k, 1]));
+  S.pd = o.pd && typeof o.pd === "object" && !Array.isArray(o.pd) ? Object.fromEntries(Object.keys(o.pd).filter(k => /^\d+$/.test(k) && P[+k]).map(k => [k, 1])) : {};
+  S.pdAuto = {};
+  S.cups = Number.isInteger(o.cups) && o.cups >= 0 && o.cups < 1000 ? o.cups : 0;
+  S.bm = o.bm && typeof o.bm === "object" ? o.bm : null; validateBm();
   save(); toast("הגיבוי שוחזר ✓"); route.keep = true; render();
 }
 function backup(kind) {
