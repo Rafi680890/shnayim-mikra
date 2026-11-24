@@ -10,6 +10,38 @@
   const NOSTRESS = new Set([0x59A, 0x59D, 0x5A0, 0x5AD, 0x599, 0x5A9]);   // טעמים שאינם מסמנים את הברת הטעם: יתיב, גרש מוקדם, תלישא גדולה, דחי, פשטא, תלישא קטנה
   const hasStress = s => { for (const ch of s) { const c = ch.codePointAt(0); if (c >= 0x591 && c <= 0x5AF && !NOSTRESS.has(c)) return true; } return false; };
 
+
+  /* ---- מילון חריגים וכללים (הרב מאיר מזוז - סולת נקיה / תנ"ך איש מצליח) ---- */
+  const canonL = (c, m) => c + [...m].map(ch => ch.codePointAt(0)).filter(cp => !(cp >= 0x591 && cp <= 0x5AF) && cp !== 0x5BD).map(cp => cp === 0x5C7 ? 0x5B8 : cp).sort((a, b) => a - b).map(cp => String.fromCodePoint(cp)).join("");
+  const canonWord = w => { const r = []; let m; CL.lastIndex = 0; while ((m = CL.exec(w))) r.push(canonL(m[1], m[2])); return r; };
+  const mk = (forms, idx, extra) => ({ set: new Set(forms.map(f => canonWord(f).join("|"))), idx, ...extra });
+  const SHVA_EXC = [
+    mk(["שְׁתַּיִם", "שְׁתֵּי", "שְׁתֵּיהֶם", "שְׁתֵּיהֶן", "שְׁתֵּינוּ", "שְׁתֵּיכֶם", "שְׁתֵּיכֶן"], 0, { why: "חריג: שְׁתַּיִם" }),
+    mk(["הִנְנִי", "הִנְנִי־נָא"], 1, { why: "חריג: הִנְנִי" }),
+    mk(["יִהְיֶה", "תִּהְיֶה", "אֶהְיֶה", "נִהְיֶה", "יִחְיֶה", "תִּחְיֶה", "אֶחְיֶה", "נִחְיֶה"], 1, { why: "חריג: יִהְיֶה / יִחְיֶה (געיה קלה)" }),
+    mk(["וַיִּשְׁתַּחוּ", "וַתִּשְׁתַּחוּ"], 1, { why: "חריג: וַיִּשְׁתַּחוּ" }),
+  ];
+  const KAM_GADOL = [
+    mk(["בָּתִּים", "בָּתֵּי", "בָּתֵּינוּ", "בָּתֵּיכֶם", "בָּתֵּיהֶם", "בָּתֵּיהֶן", "הַבָּתִּים", "וּבָתִּים", "לְבָתֵּיכֶם", "מִבָּתֵּיכֶם"], 0, {}),
+    mk(["אָנָּא", "אָנָּה"], 0, {}),
+    mk(["הָלְאָה"], 0, {}),
+    mk(["שָׁתּוּ", "זָרּוּ"], 0, {}),
+  ];
+  const KAM_KATAN = [
+    mk(["קָדָשִׁים", "הַקָּדָשִׁים", "קָדָשָׁיו", "קָדָשֶׁיךָ", "קָדָשֵׁינוּ", "קָדָשֵׁיכֶם", "קָדָשֵׁיהֶם", "לְקָדָשִׁים", "בַּקָּדָשִׁים"], 0, {}),
+    mk(["שָׁרָשִׁים", "שָׁרָשָׁיו", "שָׁרָשֶׁיהָ", "שָׁרָשֵׁינוּ", "שָׁרָשֵׁיכֶם", "שָׁרָשֵׁיהֶם"], 0, {}),
+    mk(["מָחֳרָת", "לְמָחֳרָת", "מִמָּחֳרָת"], 0, {}),
+    mk(["בָּאֳנִי", "בָּאֳנִיּוֹת", "וָאֳנִי"], 0, {}),
+  ];
+  /* ינמלו"י: שוא נע גם כשהדגש נשמט. תבנית: רשימת אותיות (עיצור + סימנים נדרשים), start = רק בתחילת מילה */
+  const YIT = [
+    { p: ["וַ", "יְ"], start: true, why: 'ינמלו"י: וַיְ' }, { p: ["הַ", "מְ"], start: true, why: 'ינמלו"י: הַמְ' },
+    { p: ["בַ", "מְ"], start: true, why: 'ינמלו"י: בַּמְ' }, { p: ["לַ", "מְ"], start: true, why: 'ינמלו"י: לַמְ' }, { p: ["כַ", "מְ"], start: true, why: 'ינמלו"י: כַּמְ' },
+    { p: ["לְ", "לוּ"], start: false, why: 'ינמלו"י: לְלוּ' },
+    { p: ["עִ", "וְ", "ר"], start: false, why: 'ינמלו"י: עִוְר' }, { p: ["צִ", "וְ", "ח"], start: false, why: 'ינמלו"י: צִוְח' },
+  ].map(e => ({ ...e, p: e.p.map(t => canonWord(t)[0] || (() => { const q = [...t]; return q[0] + q.slice(1).sort().join(""); })()) }));
+  const letterHas = (lc, pc) => lc[0] === pc[0] && [...pc].slice(1).every(ch => lc.includes(ch));
+
   function analyze(word, silluq) {
     const L = []; let m; CL.lastIndex = 0;
     while ((m = CL.exec(word))) L.push({ c: m[1], m: m[2] });
@@ -40,15 +72,29 @@
       return kind(j - 1);                                                              // אם קריאה: ממשיכה את התנועה שלפניה
     };
     const vowelIdx = j => { while (j > 0 && quiet(L[j]) && !L[j].shuruk) j--; return j; };
-    // קמץ קטן: לפי הקידוד בנוסח (U+05C7) + קמץ לפני חטף-קמץ ללא געיה + קָדָשִׁים/שָׁרָשִׁים (כללי הרב מזוז)
-    const cons = L.map(x => x.c).join("");
+    // תבנית מילה מנורמלת (ללא טעמים ומתג) לחיפוש במילון החריגים
+    const canon = L.map(x => canonL(x.c, x.m));
+    const key = canon.join("|");
+    const firstKamatz = from => { for (let i = from; i < n; i++) if (L[i].m.includes("ָ") || L[i].qq) return i; return -1; };
+    // קמץ: קודם מילון חריגים (גדול/קטן), אחר כך קידוד הנוסח (U+05C7), קמץ לפני חטף-קמץ וקָדָשִׁים/שָׁרָשִׁים
+    for (const e of KAM_GADOL) if (e.set.has(key)) { const k = firstKamatz(e.idx); if (k >= 0) { L[k].qq = false; L[k].shortV = false; L[k].longV = true; L[k].forcedGadol = true; } }
     L.forEach((x, i) => {
-      if (x.qq || !x.m.includes("ָ")) return;
+      if (x.qq || x.forcedGadol || !x.m.includes("ָ")) return;
       const nx = L[i + 1];
-      const hatafQ = nx && nx.m.includes("ֳ") && !x.meteg;
-      const plural = i + 3 < n + 1 && /^(קדש|שרש)(ים|יו|י|יה)/.test(cons.slice(i)) && i === cons.search(/קדש|שרש/);
-      if (hatafQ || plural) { x.qq = true; x.shortV = true; x.longV = false; }
+      if (nx && nx.m.includes("ֳ") && !x.meteg) { x.qq = true; x.shortV = true; x.longV = false; }
     });
+    for (const e of KAM_KATAN) if (e.set.has(key)) { const k = firstKamatz(e.idx); if (k >= 0) { L[k].qq = true; L[k].shortV = true; L[k].longV = false; } }
+    // שוא: חריגים לפי מילון (קודם) ואחר כך ינמלו"י
+    const forced = new Array(n).fill(null);
+    for (const e of SHVA_EXC) if (e.set.has(key)) { for (let i = e.idx; i < n; i++) if (L[i].shva && !L[i].hataf) { forced[i] = { na: false, why: e.why }; break; } }
+    for (const e of YIT) {
+      for (let st = 0; st + e.p.length <= n; st++) {
+        if (e.start && st > 0) break;
+        if (e.p.every((pc, j) => letterHas(canon[st + j], pc))) {
+          for (let j = 0; j < e.p.length; j++) { const L2 = L[st + j]; if (L2.shva && !L2.hataf && !forced[st + j]) forced[st + j] = { na: true, why: e.why }; }
+        }
+      }
+    }
     const out = L.map(() => ({ sn: false, dc: false, why: "" }));
     // דגש חזק
     for (let i = 0; i < n; i++) {
@@ -67,7 +113,8 @@
       let na, why;
       const shtayim = x.c === "ש" && i <= 1 && nxt && nxt.c === "ת" && nxt.dag && L[i + 2] && L[i + 2].c === "י";
       const hineni = x.c === "נ" && prv && prv.c === "ה" && prv.hiriq && nxt && (nxt.c === "נ" || x.dag);
-      if (shtayim) { na = false; why = "חריג: שְׁתַּיִם / שְׁתֵּי"; }
+      if (forced[i]) { na = forced[i].na; why = forced[i].why; }
+      else if (shtayim) { na = false; why = "חריג: שְׁתַּיִם / שְׁתֵּי"; }
       else if (hineni) { na = false; why = "חריג: הִנְנִי / הִנְּךָ"; }
       else if (i === 0) { na = true; why = "תחילת מילה"; }
       else if (i === n - 1) { na = false; why = "סוף מילה"; }
@@ -80,7 +127,6 @@
         if (k0 === "short" && pv.stress) { na = false; why = "שתי אותיות זהות, אך לפניו תנועה קטנה מוטעמת"; }
         else { na = true; why = "תחת הראשונה משתי אותיות זהות"; }
       }
-      else if (i === 1 && "והלבכ".includes(L[0].c) && L[0].m.includes("ַ") && !L[0].dag && "ינמלו".includes(x.c)) { na = true; why = 'כלל ינמלו"י (דגש שנשמט)'; }
       else {
         const k = kind(i - 1);
         if (k === "long") {
