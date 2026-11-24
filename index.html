@@ -314,6 +314,15 @@ body.hasplayer #app{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
 #player .pspeeds button{flex:1;min-width:52px;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 4px;font-weight:700;font-size:13px;color:var(--ink)}
 #player .pspeeds button.on{background:#1db954;border-color:#1db954;color:#07210f}
 body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
+
+@font-face{font-family:"NkS";src:url(font-nk-s.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkD";src:url(font-nk-d.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkSD";src:url(font-nk-sd.woff2) format("woff2");font-display:swap}
+.nk-s,.nk-d,.nk-sd{font-style:normal}
+.nk-s{font-family:"NkS","TanachFont",serif}.nk-d{font-family:"NkD","TanachFont",serif}.nk-sd{font-family:"NkSD","TanachFont",serif}
+.nk-off .nk-s,.nk-off .nk-d,.nk-off .nk-sd{font-family:inherit}
+.nklg{font-family:"TanachFont",serif;font-size:22px;line-height:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin:4px 0 2px}
+.nklg span{white-space:nowrap}.nklg small{font-family:"UIFont",sans-serif;font-size:13px;color:var(--mute);font-weight:700;margin-inline-start:4px}
 </style>
 </head>
 <body>
@@ -322,6 +331,117 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 <div id="player" hidden></div>
 <div class="toast" id="toast"></div>
 <script src="meta.js"></script>
+<script>/* הדגשת ניקוד: שוא נע, קמץ קטן, דגש חזק.
+   קמץ קטן: מזוהה לפי הקידוד בנוסח (U+05C7) - ודאי.
+   שוא נע ודגש חזק: זיהוי לפי כללי הדקדוק (אלגוריתם), על סמך הניקוד והטעמים. אינו מחליף בדיקה של מדקדק.
+   מוצא: NK.html(טקסט, האם_להציג_טעמים) - מחזיר HTML; אותיות עם שוא נע / דגש חזק עטופות ב-<i class="nk-s|nk-d|nk-sd"> */
+(function (root) {
+  "use strict";
+  const WORD = /(?:[א-ת][֑-ׇֽֿׁׂׅׄ]*)+/g;
+  const CL = /([א-ת])([֑-ׇֽֿׁׂׅׄ]*)/g;
+  const BEGAD = "בגדכפת";
+  const NOSTRESS = new Set([0x59A, 0x59D, 0x5A0, 0x5AD, 0x599, 0x5A9]);   // טעמים שאינם מסמנים את הברת הטעם: יתיב, גרש מוקדם, תלישא גדולה, דחי, פשטא, תלישא קטנה
+  const hasStress = s => { for (const ch of s) { const c = ch.codePointAt(0); if (c >= 0x591 && c <= 0x5AF && !NOSTRESS.has(c)) return true; } return false; };
+
+  function analyze(word, silluq) {
+    const L = []; let m; CL.lastIndex = 0;
+    while ((m = CL.exec(word))) L.push({ c: m[1], m: m[2] });
+    const n = L.length;
+    for (const x of L) {
+      const s = x.m;
+      x.shva = s.includes("ְ");
+      x.hataf = /[ֱ-ֳ]/.test(s);
+      x.dag = s.includes("ּ");
+      x.qq = s.includes("ׇ");
+      x.hiriq = s.includes("ִ"); x.tsere = s.includes("ֵ"); x.segol = s.includes("ֶ");
+      x.longV = /[ֵָֹֺ]/.test(s);
+      x.shortV = /[ִֶַׇֻ]/.test(s);
+      x.stress = hasStress(s);
+      x.meteg = s.includes("ֽ");
+      if (x.c === "ו" && x.dag && !x.longV && !x.shortV && !x.shva && !x.hataf) { x.shuruk = true; x.dag = false; x.longV = true; }   // ו עם דגש = שורוק
+    }
+    const quiet = x => !x.longV && !x.shortV && !x.shva && !x.hataf && !x.dag;       // אות שאינה נושאת תנועה (אמות קריאה וכד')
+    const maleYod = j => !!L[j + 1] && L[j + 1].c === "י" && quiet(L[j + 1]);         // חיריק/צירי/סגול מלא
+    const kind = j => {                                                                // סוג התנועה שבה מסתיימת האות j
+      const x = L[j];
+      if (x.longV) return "long";
+      if (x.hiriq || x.segol) return maleYod(j) ? "long" : "short";
+      if (x.shortV) return "short";
+      if (x.hataf) return "hataf";
+      if (x.shva) return "shva";
+      if (j === 0) return "none";
+      return kind(j - 1);                                                              // אם קריאה: ממשיכה את התנועה שלפניה
+    };
+    const vowelIdx = j => { while (j > 0 && quiet(L[j]) && !L[j].shuruk) j--; return j; };
+    const out = L.map(() => ({ sn: false, dc: false }));
+    // דגש חזק
+    for (let i = 0; i < n; i++) {
+      const x = L[i]; if (!x.dag) continue;
+      if (x.c === "ה" && i === n - 1) continue;                                        // מפיק
+      if (BEGAD.includes(x.c)) {
+        if (i === 0) continue;                                                         // תחילת מילה: דגש קל
+        const k = kind(i - 1);
+        out[i].dc = k === "long" || k === "short" || k === "hataf";                    // אחרי תנועה: חזק; אחרי שוא: קל
+      } else out[i].dc = true;
+    }
+    // שוא נע
+    for (let i = 0; i < n; i++) {
+      const x = L[i]; if (!x.shva || x.hataf) continue;
+      let na;
+      if (i === 0) na = true;                                                          // בתחילת מילה
+      else if (i === n - 1) na = false;                                                // בסוף מילה
+      else if (L[i - 1].shva) na = true;                                               // השני משני שואים רצופים
+      else if (i === 1 && L[0].shuruk) na = true;                                      // ו החיבור בשורוק: הברה פתוחה (וּלְ, וּבְ...)
+      else if (out[i].dc) na = true;                                                   // תחת אות דגושה בדגש חזק
+      else if (L[i + 1].shva && i + 1 !== n - 1) na = false;                           // הראשון משני שואים רצופים
+      else if (L[i + 1].c === x.c && !L[i + 1].shva) na = true;                        // תחת הראשונה מבין שתי אותיות זהות
+      else {
+        const k = kind(i - 1);
+        if (k === "long") {
+          const v = L[vowelIdx(i - 1)];
+          const gaya = v.meteg && !silluq, stressed = v.stress || (silluq && v.meteg);
+          na = gaya ? true : !stressed;                                                // תנועה גדולה: נע; אך אם עליה הטעם - נח (הברה סגורה); געיה - נע
+        } else na = false;
+      }
+      out[i].sn = na;
+    }
+    return { L, out };
+  }
+
+  /* הדגשה בצורת הגליף: אות שנושאת שוא נע / דגש חזק עטופה ב-<i> שמציג אותה בגרסת גופן מיוחדת
+     (nk-s = שוא נע, nk-d = דגש חזק, nk-sd = שניהם). קמץ קטן (U+05C7) מוצג בצורתו המיוחדת בגופן עצמו. */
+  function word(w, taamim, silluq) {
+    const { L, out } = analyze(w, silluq);
+    let h = "";
+    L.forEach((x, i) => {
+      let c = x.c;
+      for (const ch of x.m) {
+        const cp = ch.codePointAt(0);
+        if (!taamim && cp >= 0x591 && cp <= 0x5AF) continue;
+        c += ch;
+      }
+      const cls = out[i].sn && out[i].dc ? "nk-sd" : out[i].sn ? "nk-s" : out[i].dc ? "nk-d" : "";
+      h += cls ? `<i class="${cls}">${c}</i>` : c;
+    });
+    return h;
+  }
+  /* text: פסוק או חלק ממנו. taamim=false מסיר את הטעמים (כמו stripT) אך הזיהוי נעשה עם הטעמים */
+  function html(text, taamim) {
+    const t = String(text);
+    let res = "", last = 0, m; WORD.lastIndex = 0;
+    const plain = s => taamim ? s : s.replace(/[֑-֯׀]/g, "");
+    while ((m = WORD.exec(t))) {
+      const after = t.slice(m.index + m[0].length, m.index + m[0].length + 3).replace(/[\sֽ]/g, "");
+      const silluq = after.startsWith("׃");
+      res += plain(t.slice(last, m.index)) + word(m[0], taamim, silluq);
+      last = m.index + m[0].length;
+    }
+    return res + plain(t.slice(last));
+  }
+  const api = { html, analyze };
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.NK = api;
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
 <script src="sched.js"></script>
 <script>
 "use strict";
@@ -344,7 +464,7 @@ function validateBm() {
   const rr = srcOk && Number.isInteger(b.a) && b.a >= 0 && b.a <= 6 ? (b.k[0] === "w" ? SCH[b.k.slice(2)] : P[+b.k.slice(2)]).r[b.a] : null;
   if (!(rr && Number.isInteger(b.c) && Number.isInteger(b.v) && (b.c > rr[1] || b.v >= rr[2]) && (b.c < rr[3] || b.v <= rr[4]) && b.c >= rr[1] && b.c <= rr[3] && b.v >= 1)) S.bm = null;
 }
-let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, rashi: true, twice: true, explain: true, rate: 1, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
+let S = { v: 1, done: {}, pd: {}, bm: null, hintBm: false, nk: true, rashi: true, twice: true, explain: true, rate: 1, fs: 26, taamim: true, targum: true, theme: "light", sunset: true };
 try {
   const raw = JSON.parse(localStorage.getItem(KEY) || "{}");
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw 0;
@@ -358,7 +478,7 @@ try {
   S.hintBm = !!S.hintBm;
   if (!(Number.isFinite(S.fs) && S.fs >= 16 && S.fs <= 48)) S.fs = 26;
   if (!["light", "sepia", "dark", "auto"].includes(S.theme)) S.theme = "light";
-  S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.twice = S.twice !== false; S.explain = S.explain !== false; if (![0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].includes(S.rate)) S.rate = 1; S.targum = S.targum !== false;
+  S.nk = S.nk !== false; S.sunset = S.sunset !== false; S.taamim = S.taamim !== false; S.rashi = S.rashi !== false; S.twice = S.twice !== false; S.explain = S.explain !== false; if (![0.5, 0.75, 1, 1.25, 1.5, 1.75, 2].includes(S.rate)) S.rate = 1; S.targum = S.targum !== false;
 }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 const dk = (w, a) => w + ":" + a;
@@ -371,6 +491,8 @@ try { navigator.storage && navigator.storage.persist && navigator.storage.persis
 const darkMQ = window.matchMedia ? matchMedia("(prefers-color-scheme: dark)") : null;
 function applyTheme() { document.documentElement.dataset.theme = S.theme === "auto" ? (darkMQ && darkMQ.matches ? "dark" : "light") : S.theme; }
 applyTheme();
+const applyNk = () => document.documentElement.classList.toggle("nk-off", !S.nk);
+applyNk();
 if (darkMQ) (darkMQ.addEventListener ? darkMQ.addEventListener("change", applyTheme) : darkMQ.addListener(applyTheme));
 
 /* ---------- עזרים ---------- */
@@ -529,17 +651,18 @@ function annotate(words, cs) {                               // מצמיד כל 
 }
 let POP = [];
 function verseHTML(text, rc) {
-  const toks = []; (text.match(/[^־\s]+־?/g) || []).forEach(t => { if (t === "׀" && toks.length) toks[toks.length - 1].t += " ׀"; else toks.push({ t, n: norm(t) }); });
-  if (!rc || !rc.length) return toks.map(w => w.t).join(" ").replace(/־ /g, "־");
+  const toks = []; (text.match(/[^־\s]+־?/g) || []).forEach(t => { if (t === "׀" && !S.taamim) return; if (t === "׀" && toks.length) toks[toks.length - 1].t += " ׀"; else toks.push({ t, n: norm(t) }); });
+  toks.forEach(w => { w.h = NK.html(w.t, S.taamim); });   // הדגשת שוא נע ודגש חזק (והסרת הטעמים אם כבויים)
+  if (!rc || !rc.length) return toks.map(w => w.h).join(" ").replace(/־ /g, "־");
   const { map, loose } = annotate(toks, rc.map(parseC));
   const ids = new Map(), idOf = c => { if (!ids.has(c)) { ids.set(c, POP.length); POP.push(c); } return ids.get(c); };
   const key = k => map[k] ? map[k].map(idOf).join(",") : "";
   let out = "", k = 0;
   while (k < toks.length) {
     const ky = key(k);
-    if (!ky) { out += toks[k].t + (toks[k].t.endsWith("־") ? "" : " "); k++; continue; }
+    if (!ky) { out += toks[k].h + (toks[k].t.endsWith("־") ? "" : " "); k++; continue; }
     let e = k; while (e + 1 < toks.length && key(e + 1) === ky) e++;
-    let inner = ""; for (let q = k; q <= e; q++) inner += toks[q].t + (q < e && !toks[q].t.endsWith("־") ? " " : "");
+    let inner = ""; for (let q = k; q <= e; q++) inner += toks[q].h + (q < e && !toks[q].t.endsWith("־") ? " " : "");
     out += `<span class="hl" role="button" tabindex="0" aria-label="פירוש רש״י" data-p="${ky}">${inner}</span>${toks[e].t.endsWith("־") ? "" : " "}`;
     k = e + 1;
   }
@@ -578,7 +701,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.11 (v13)";
+const APP_VERSION = "2026.11.24 (v14)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");
@@ -710,7 +833,7 @@ function readView() {
   for (let c = r[1]; c <= r[3]; c++) {
     const from = c === r[1] ? r[2] : 1, to = c === r[3] ? r[4] : B[bi].c[c - 1];
     for (let v = from; v <= to; v++) {
-      const [m, g] = TX[bi][c - 1][v - 1], rc = S.rashi && RS[bi] ? RS[bi][c - 1][v - 1] : null, pb = m.endsWith("\n"), mt = (S.taamim ? m : stripT(m)).trim();
+      const [m, g] = TX[bi][c - 1][v - 1], rc = S.rashi && RS[bi] ? RS[bi][c - 1][v - 1] : null, pb = m.endsWith("\n"), mt = m.trim();
       const on = bmAt(route, c, v), rm = !on && route.resume && route.resume.k === bmKey(route) && route.resume.a === route.a && route.resume.c === c && route.resume.v === v;
       if (on) t += `<div class="bmline" id="bmline"><span>🔖 עד כאן למדתי</span><button data-bmclear>הסר</button></div>`;
       else if (rm) t += `<div class="bmline" id="bmline"><span>🔖 כאן עצרת בפעם הקודמת</span></div>`;
@@ -756,6 +879,9 @@ function settingsHTML() {
   return `<button class="x" data-close aria-label="סגור">✕</button><h3 class="sh" style="margin-top:4px">הגדרות תצוגה</h3>
   <div class="row"><span>גודל הכתב</span><div class="seg"><button data-fs="-2">א−</button><button class="on" disabled>${S.fs}</button><button data-fs="2">א+</button></div></div>
   <div class="row"><span>טעמי המקרא</span>${sw("taamim", S.taamim)}</div>
+  <div class="row"><span>סימון מיוחד לשוא נע ולדגש חזק</span>${sw("nk", S.nk)}</div>
+  <div class="nklg"><span><i class="nk-s">בְ</i><small>שוא נע</small></span><span>מׇ<small>קמץ קטן</small></span><span><i class="nk-d">נּ</i><small>דגש חזק</small></span></div>
+  <div style="font-size:13px;color:var(--mute);margin:0 0 6px;line-height:1.5">קמץ קטן מוצג תמיד בצורתו המיוחדת. זיהוי השוא הנע והדגש החזק נעשה אוטומטית לפי כללי הדקדוק, והוא חל על נוסח המקרא בלבד (לא על התרגום).</div>
   <div class="row"><span>פירוש רש״י <i style="display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--hld);vertical-align:middle"></i></span>${sw("rashi", S.rashi)}</div>
   <div class="row"><span>כל פסוק פעמיים <small style="color:var(--mute)">(שניים מקרא)</small></span>${sw("twice", S.twice)}</div>
   <div class="row"><span>תרגום אונקלוס אחרי כל פסוק</span>${sw("targum", S.targum)}</div>
@@ -802,7 +928,7 @@ document.addEventListener("click", e => {
   if (t.hasAttribute("data-close")) closeSheet();
   else if (D.p) openPop(D.p);
   else if (t.hasAttribute("data-set")) openSheet(settingsHTML());
-  else if (D.sw) { S[D.sw] = !S[D.sw]; save(); if (D.sw === "sunset") checkDayRoll(); t.classList.toggle("on", S[D.sw]); t.setAttribute("aria-checked", S[D.sw]); route.keep = true; render(); }
+  else if (D.sw) { S[D.sw] = !S[D.sw]; save(); if (D.sw === "sunset") checkDayRoll(); if (D.sw === "nk") applyNk(); t.classList.toggle("on", S[D.sw]); t.setAttribute("aria-checked", S[D.sw]); route.keep = true; render(); }
   else if (D.th) { S.theme = D.th; applyTheme(); save(); document.querySelectorAll("#sheet [data-th]").forEach(b => b.classList.toggle("on", b.dataset.th === S.theme)); }
   else if (D.fs && t.closest("#sheet")) { S.fs = Math.min(48, Math.max(16, S.fs + +D.fs)); save(); const tx = $(".text"); if (tx) tx.style.setProperty("--fs", S.fs + "px"); const lb = t.parentElement.querySelector(".on"); if (lb) lb.textContent = S.fs; }
   else if (t.hasAttribute("data-home")) go({ v: "day", date: route.w ? iso(dateOf(route.w, route.a)) : (lastDay || iso(today())) });
