@@ -255,7 +255,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.24 (v21)";
+const APP_VERSION = "2026.11.24 (v22)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");
@@ -340,7 +340,7 @@ function dayView() {
 function progressView() {
   const cv = coverage(), t = totals();
   let h = `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="day">${I.home}<span>חזרה לדף הבית</span></button><div class="rt">התקדמות</div></header>
-  <div class="card prog"><div class="ring" style="--p:${cv.pct}"><i>${cv.pct}%</i></div><div style="flex:1"><b style="font-size:18px">התורה כולה</b><div style="color:var(--mute);margin:2px 0 8px">${cv.g} מתוך ${cv.all} פסוקים נלמדו</div><div class="bar"><i style="width:${cv.pct}%"></i></div></div></div>
+  <div class="card prog stick"><div class="ring" style="--p:${cv.pct}"><i>${cv.pct}%</i></div><div style="flex:1"><b style="font-size:18px">התורה כולה</b><div style="color:var(--mute);margin:2px 0 8px">${cv.g} מתוך ${cv.all} פסוקים נלמדו</div><div class="bar"><i style="width:${cv.pct}%"></i></div></div></div>
   <div class="tot"><div><b>${t.al}</b>עליות נלמדו</div><div><b>${t.full}</b>שבועות שלמים</div></div>`;
   B.forEach((bk, b) => {
     const p = cv.got[b] / cv.tot[b] * 100;

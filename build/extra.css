@@ -197,3 +197,5 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 .nk-off .nk-s,.nk-off .nk-d,.nk-off .nk-sd,.nk-off .nk-q,.nk-off .nk-dq{font-family:inherit}
 .nklg{font-family:"TanachFont",serif;font-size:22px;line-height:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin:4px 0 2px}
 .nklg span{white-space:nowrap}.nklg small{font-family:"UIFont",sans-serif;font-size:13px;color:var(--mute);font-weight:700;margin-inline-start:4px}
+.prog.stick{position:sticky;top:calc(6px + env(safe-area-inset-top));z-index:6;box-shadow:0 6px 16px rgba(20,48,90,.18);padding:10px 14px;margin:0 0 10px}
+.prog.stick .ring{width:56px;height:56px}.prog.stick .ring i{width:42px;height:42px;font-size:14px}
