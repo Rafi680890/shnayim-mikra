@@ -315,12 +315,14 @@ body.hasplayer #app{padding-bottom:calc(190px + env(safe-area-inset-bottom))}
 #player .pspeeds button.on{background:#1db954;border-color:#1db954;color:#07210f}
 body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 
-@font-face{font-family:"NkS";src:url(font-nk-s.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkD";src:url(font-nk-d.woff2) format("woff2");font-display:swap}
-@font-face{font-family:"NkSD";src:url(font-nk-sd.woff2) format("woff2");font-display:swap}
-.nk-s,.nk-d,.nk-sd{font-style:normal}
-.nk-s{font-family:"NkS","TanachFont",serif}.nk-d{font-family:"NkD","TanachFont",serif}.nk-sd{font-family:"NkSD","TanachFont",serif}
-.nk-off .nk-s,.nk-off .nk-d,.nk-off .nk-sd{font-family:inherit}
+@font-face{font-family:"NkS";src:url(font-nk2-s.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkD";src:url(font-nk2-d.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkSD";src:url(font-nk2-sd.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkQ";src:url(font-nk2-q.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"NkDQ";src:url(font-nk2-dq.woff2) format("woff2");font-display:swap}
+.nk-s,.nk-d,.nk-sd,.nk-q,.nk-dq{font-style:normal}
+.nk-s{font-family:"NkS","TanachFont",serif}.nk-d{font-family:"NkD","TanachFont",serif}.nk-sd{font-family:"NkSD","TanachFont",serif}.nk-q{font-family:"NkQ","TanachFont",serif}.nk-dq{font-family:"NkDQ","TanachFont",serif}
+.nk-off .nk-s,.nk-off .nk-d,.nk-off .nk-sd,.nk-off .nk-q,.nk-off .nk-dq{font-family:inherit}
 .nklg{font-family:"TanachFont",serif;font-size:22px;line-height:2;display:flex;flex-wrap:wrap;gap:4px 16px;margin:4px 0 2px}
 .nklg span{white-space:nowrap}.nklg small{font-family:"UIFont",sans-serif;font-size:13px;color:var(--mute);font-weight:700;margin-inline-start:4px}
 </style>
@@ -334,7 +336,7 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 <script>/* הדגשת ניקוד: שוא נע, קמץ קטן, דגש חזק.
    קמץ קטן: מזוהה לפי הקידוד בנוסח (U+05C7) - ודאי.
    שוא נע ודגש חזק: זיהוי לפי כללי הדקדוק (אלגוריתם), על סמך הניקוד והטעמים. אינו מחליף בדיקה של מדקדק.
-   מוצא: NK.html(טקסט, האם_להציג_טעמים) - מחזיר HTML; אותיות עם שוא נע / דגש חזק עטופות ב-<i class="nk-s|nk-d|nk-sd"> */
+   מוצא: NK.html(טקסט, האם_להציג_טעמים) - מחזיר HTML; אותיות עם שוא נע / קמץ קטן / דגש חזק עטופות ב-<i class="nk-s|nk-d|nk-sd|nk-q|nk-dq"> */
 (function (root) {
   "use strict";
   const WORD = /(?:[א-ת][֑-ׇֽֿׁׂׅׄ]*)+/g;
@@ -409,7 +411,7 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
   }
 
   /* הדגשה בצורת הגליף: אות שנושאת שוא נע / דגש חזק עטופה ב-<i> שמציג אותה בגרסת גופן מיוחדת
-     (nk-s = שוא נע, nk-d = דגש חזק, nk-sd = שניהם). קמץ קטן (U+05C7) מוצג בצורתו המיוחדת בגופן עצמו. */
+     (nk-s = שוא נע, nk-d = דגש חזק, nk-q = קמץ קטן, ושילובים nk-sd, nk-dq). */
   function word(w, taamim, silluq) {
     const { L, out } = analyze(w, silluq);
     let h = "";
@@ -420,7 +422,8 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
         if (!taamim && cp >= 0x591 && cp <= 0x5AF) continue;
         c += ch;
       }
-      const cls = out[i].sn && out[i].dc ? "nk-sd" : out[i].sn ? "nk-s" : out[i].dc ? "nk-d" : "";
+      const sn = out[i].sn, dc = out[i].dc, q = x.qq;
+      const cls = q && dc ? "nk-dq" : q ? "nk-q" : sn && dc ? "nk-sd" : sn ? "nk-s" : dc ? "nk-d" : "";
       h += cls ? `<i class="${cls}">${c}</i>` : c;
     });
     return h;
@@ -701,7 +704,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.24 (v14)";
+const APP_VERSION = "2026.11.24 (v15)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");
@@ -879,9 +882,9 @@ function settingsHTML() {
   return `<button class="x" data-close aria-label="סגור">✕</button><h3 class="sh" style="margin-top:4px">הגדרות תצוגה</h3>
   <div class="row"><span>גודל הכתב</span><div class="seg"><button data-fs="-2">א−</button><button class="on" disabled>${S.fs}</button><button data-fs="2">א+</button></div></div>
   <div class="row"><span>טעמי המקרא</span>${sw("taamim", S.taamim)}</div>
-  <div class="row"><span>סימון מיוחד לשוא נע ולדגש חזק</span>${sw("nk", S.nk)}</div>
-  <div class="nklg"><span><i class="nk-s">בְ</i><small>שוא נע</small></span><span>מׇ<small>קמץ קטן</small></span><span><i class="nk-d">נּ</i><small>דגש חזק</small></span></div>
-  <div style="font-size:13px;color:var(--mute);margin:0 0 6px;line-height:1.5">קמץ קטן מוצג תמיד בצורתו המיוחדת. זיהוי השוא הנע והדגש החזק נעשה אוטומטית לפי כללי הדקדוק, והוא חל על נוסח המקרא בלבד (לא על התרגום).</div>
+  <div class="row"><span>סימון מיוחד לשוא נע, לקמץ קטן ולדגש חזק</span>${sw("nk", S.nk)}</div>
+  <div class="nklg"><span><i class="nk-s">בְ</i><small>שוא נע</small></span><span><i class="nk-q">מׇ</i><small>קמץ קטן</small></span><span><i class="nk-d">נּ</i><small>דגש חזק</small></span></div>
+  <div style="font-size:13px;color:var(--mute);margin:0 0 6px;line-height:1.5">שוא נע מוצג כשוא מודגש, קמץ קטן כ-T מודגש, ודגש חזק כמעוין. קמץ קטן מזוהה לפי הנוסח; שוא נע ודגש חזק – אוטומטית לפי כללי הדקדוק, והוא חל על נוסח המקרא בלבד (לא על התרגום).</div>
   <div class="row"><span>פירוש רש״י <i style="display:inline-block;width:14px;height:14px;border-radius:4px;background:var(--hld);vertical-align:middle"></i></span>${sw("rashi", S.rashi)}</div>
   <div class="row"><span>כל פסוק פעמיים <small style="color:var(--mute)">(שניים מקרא)</small></span>${sw("twice", S.twice)}</div>
   <div class="row"><span>תרגום אונקלוס אחרי כל פסוק</span>${sw("targum", S.targum)}</div>
