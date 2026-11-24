@@ -24,7 +24,7 @@
   const KAM_GADOL = [
     mk(["בָּתִּים", "בָּתֵּי", "בָּתֵּינוּ", "בָּתֵּיכֶם", "בָּתֵּיהֶם", "בָּתֵּיהֶן", "הַבָּתִּים", "וּבָתִּים", "לְבָתֵּיכֶם", "מִבָּתֵּיכֶם"], 0, {}),
     mk(["אָנָּא", "אָנָּה"], 0, {}),
-    mk(["הָלְאָה"], 0, {}),
+    mk(["הָלְאָה"], 0, { shvaNa: "חריג: הָלְאָה (הלמ״ד בשוא נע)" }),
     mk(["שָׁתּוּ", "זָרּוּ"], 0, {}),
   ];
   const KAM_KATAN = [
@@ -87,6 +87,7 @@
     // שוא: חריגים לפי מילון (קודם) ואחר כך ינמלו"י
     const forced = new Array(n).fill(null);
     for (const e of SHVA_EXC) if (e.set.has(key)) { for (let i = e.idx; i < n; i++) if (L[i].shva && !L[i].hataf) { forced[i] = { na: false, why: e.why }; break; } }
+    for (const e of KAM_GADOL) if (e.shvaNa && e.set.has(key)) { for (let i = 0; i < n; i++) if (L[i].shva && !L[i].hataf) { forced[i] = { na: true, why: e.shvaNa }; break; } }
     for (const e of YIT) {
       for (let st = 0; st + e.p.length <= n; st++) {
         if (e.start && st > 0) break;

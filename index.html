@@ -359,7 +359,7 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
   const KAM_GADOL = [
     mk(["בָּתִּים", "בָּתֵּי", "בָּתֵּינוּ", "בָּתֵּיכֶם", "בָּתֵּיהֶם", "בָּתֵּיהֶן", "הַבָּתִּים", "וּבָתִּים", "לְבָתֵּיכֶם", "מִבָּתֵּיכֶם"], 0, {}),
     mk(["אָנָּא", "אָנָּה"], 0, {}),
-    mk(["הָלְאָה"], 0, {}),
+    mk(["הָלְאָה"], 0, { shvaNa: "חריג: הָלְאָה (הלמ״ד בשוא נע)" }),
     mk(["שָׁתּוּ", "זָרּוּ"], 0, {}),
   ];
   const KAM_KATAN = [
@@ -422,6 +422,7 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
     // שוא: חריגים לפי מילון (קודם) ואחר כך ינמלו"י
     const forced = new Array(n).fill(null);
     for (const e of SHVA_EXC) if (e.set.has(key)) { for (let i = e.idx; i < n; i++) if (L[i].shva && !L[i].hataf) { forced[i] = { na: false, why: e.why }; break; } }
+    for (const e of KAM_GADOL) if (e.shvaNa && e.set.has(key)) { for (let i = 0; i < n; i++) if (L[i].shva && !L[i].hataf) { forced[i] = { na: true, why: e.shvaNa }; break; } }
     for (const e of YIT) {
       for (let st = 0; st + e.p.length <= n; st++) {
         if (e.start && st > 0) break;
@@ -770,7 +771,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.24 (v20)";
+const APP_VERSION = "2026.11.24 (v21)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
   toast("מרענן לגרסה החדשה…");
