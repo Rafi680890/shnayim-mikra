@@ -274,7 +274,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.25 (v16)";
+const APP_VERSION = "2026.11.25 (v17)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   toast("בודק חיבור…");
   try { const r = await fetch(location.pathname + "?r=" + Date.now(), { cache: "no-store" }); if (!r.ok) throw 0; }   // בדיקה אמיתית: onLine מחזיר true גם ב-Wi-Fi בלי אינטרנט
@@ -338,7 +338,7 @@ async function offlineDownload() {
 /* ---------- חיפוש חופשי ---------- */
 const SQ = { q: "", scope: "t", full: false, part: false, bk: "", shown: 100, scroll: 0 };
 const NWD = {}, PRE = "ובהכלמש";
-const nw = s => s.replace(NIK, "").replace(/[־\-]/g, " ").replace(/[^א-ת\s]/g, "").replace(/\s+/g, " ").trim();
+const nw = s => s.replace(/[־\-]/g, " ").replace(NIK, "").replace(/[^א-ת\s]/g, "").replace(/\s+/g, " ").trim();
 const sk = s => s.replace(/[וי]/g, "");
 const escH = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const TAAM = /[֑-֯]/g;
