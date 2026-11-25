@@ -1,10 +1,10 @@
-const CACHE = "shnayim-mikra-v14";
-const CORE = ["./", "index.html", "meta.js", "sched.js", "font-tx5.woff2", "font-ui.woff2", "font-nk5-s.woff2", "font-nk5-d.woff2", "font-nk5-sd.woff2", "font-nk5-q.woff2", "font-nk5-dq.woff2", "logo.png", "manifest.webmanifest", "icon-v3-192.png", "icon-v3-512.png", "icon-v3-180.png"];
+const CACHE = "shnayim-mikra-v15";
+const CORE = ["./", "index.html", "meta.js", "sched.js", "nk.js", "app.js", "font-tx5.woff2", "font-ui.woff2", "font-nk5-s.woff2", "font-nk5-d.woff2", "font-nk5-sd.woff2", "font-nk5-q.woff2", "font-nk5-dq.woff2", "logo.png", "manifest.webmanifest", "icon-v3-192.png", "icon-v3-512.png", "icon-v3-180.png"];
 const DATA_V = "20261027b";   // כמו ב-index.html
 const TXT = [0, 1, 2, 3, 4].map(i => ["tx/" + i + ".json?v=" + DATA_V, "rashi/" + i + ".json?v=" + DATA_V]).flat();
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(async c => {
-    await c.addAll(CORE);
+    await Promise.all(CORE.map(u => c.add(new Request(u, { cache: "reload" }))));   // בלי מטמון הדפדפן (GitHub Pages שומר 10 דקות), אחרת ייתפס קובץ ישן
     await Promise.allSettled(TXT.map(u => c.add(u)));   // הטקסט - בכל כשל ממשיכים (יוטען בעת הצורך)
   }).then(() => self.skipWaiting()));
 });
@@ -13,9 +13,9 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
   if (new URL(req.url).pathname.includes("/audio/")) return;   // קבצי שמע גדולים: ישירות מהרשת (תמיכה בטווחי בקשה)
-  const isPage = req.mode === "navigate" || /\/(index\.html|meta\.js|sched\.js|manifest\.webmanifest)?$/.test(new URL(req.url).pathname);
+  const isPage = req.mode === "navigate" || /\/(index\.html|meta\.js|sched\.js|nk\.js|app\.js|manifest\.webmanifest)?$/.test(new URL(req.url).pathname);
   if (isPage) {   // דף ראשי ולוח: קודם רשת (כדי שעדכונים יגיעו), ובלי חיבור - מהמטמון
-    e.respondWith(fetch(req, { cache: "no-cache" }).then(n => { const c = n.clone(); caches.open(CACHE).then(x => x.put(req, c)); return n; }).catch(() => caches.match(req).then(r => r || caches.match("index.html"))));
+    e.respondWith(fetch(req, { cache: "no-cache" }).then(n => { if (n.ok) { const c = n.clone(); caches.open(CACHE).then(x => x.put(req, c)); } return n; }).catch(() => caches.match(req, { ignoreSearch: true }).then(r => r || caches.match("index.html"))));
     return;
   }
   e.respondWith(caches.match(req).then(r => r || fetch(req).then(n => { if (n.ok) { const c = n.clone(); caches.open(CACHE).then(x => x.put(req, c)); } return n; })));

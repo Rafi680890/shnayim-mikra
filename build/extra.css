@@ -201,3 +201,23 @@ body.hasplayer #app{padding-bottom:calc(235px + env(safe-area-inset-bottom))}
 .prog.stick .ring{width:56px;height:56px}.prog.stick .ring i{width:42px;height:42px;font-size:14px}
 .tot div{min-width:0}
 .tot b{white-space:nowrap}
+
+/* חיפוש, הודעת גרסה חדשה והורדה לאופליין */
+.sq{width:100%;box-sizing:border-box;height:48px;border:2px solid var(--line);background:var(--card);border-radius:14px;padding:0 14px;font-size:18px;color:var(--ink);font-family:inherit}
+.sq:focus{outline:none;border-color:var(--accent)}
+.sopts{display:flex;gap:8px;align-items:center;margin:10px 0 4px;flex-wrap:wrap;font-size:14px;color:var(--mute)}
+.sopts select{height:38px;font-size:15px;width:auto;flex:1;min-width:130px}
+.sopts label{display:flex;align-items:center;gap:6px;font-weight:600;cursor:pointer}
+.ssum{font-size:14px;color:var(--mute);margin:10px 4px 6px;font-weight:700}
+.sres{display:block;width:100%;text-align:right;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin:6px 0;color:var(--ink);font-family:inherit}
+.sres .sref{font-size:13px;font-weight:800;color:var(--accent);margin-bottom:4px}
+.sres .stx{font-family:"TanachFont",serif;font-size:21px;line-height:1.75;direction:rtl}
+.sres .stx.sg,.sres .stx.sr{font-size:18px}
+mark.hit{background:var(--mark);color:inherit;border-radius:5px;padding:0 2px}
+.smore{display:block;margin:10px auto;border:2px solid var(--accent);background:var(--card);color:var(--accent);border-radius:999px;padding:10px 24px;font-weight:800;font-size:15px}
+.newver{position:fixed;top:calc(8px + env(safe-area-inset-top));inset-inline:12px;max-width:520px;margin:0 auto;z-index:35;background:var(--accent);color:var(--card);border-radius:16px;padding:10px 12px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-weight:700;font-size:15px}
+.newver span{flex:1;line-height:1.3}
+.newver .nvu{border:0;background:var(--card);color:var(--accent);border-radius:999px;padding:8px 14px;font-weight:800;font-size:14px;white-space:nowrap}
+.newver .nvx{border:0;background:none;color:inherit;font-size:20px;padding:4px 8px;opacity:.85}
+.offbtn{display:block;margin:12px auto 0;border:2px solid var(--ok);background:var(--card);color:var(--ok);border-radius:12px;padding:10px 18px;font-weight:800;font-size:15px}
+.offbtn:disabled{opacity:.6}

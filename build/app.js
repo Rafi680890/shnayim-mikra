@@ -112,6 +112,7 @@ function toast(t, act) {
 let lastBm = null;
 const I = {
   home: '<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h5v-6h4v6h5V10"/></svg>',
+  search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>',
   chart: '<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
   book: '<svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5"/></svg>',
   cal: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
@@ -163,7 +164,7 @@ function fromHash() {
   if (v === "read" && parts[1] === "w" && SCH[parts[2]] && /^[0-6]$/.test(parts[3])) route = { v, w: parts[2], a: +parts[3] };
   else if (v === "read" && parts[1] === "p" && /^\d+$/.test(parts[2]) && P[+parts[2]] && /^[0-6]$/.test(parts[3])) route = { v, p: +parts[2], a: +parts[3] };
   else if (v === "par" && /^\d+$/.test(parts[1]) && P[+parts[1]]) route = { v, p: +parts[1] };
-  else if (v === "books" || v === "progress") route = { v };
+  else if (v === "books" || v === "progress" || v === "search") route = { v };
   else route = { v: "day", date: !first && /^\d{4}-\d\d-\d\d$/.test(parts[1] || "") ? parts[1] : iso(today()) };
   closeSheet(); render();
 }
@@ -273,9 +274,11 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.25 (v14)";
+const APP_VERSION = "2026.11.25 (v15)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
-  if (!navigator.onLine) { toast("צריך חיבור לאינטרנט כדי לרענן"); return; }
+  toast("בודק חיבור…");
+  try { const r = await fetch(location.pathname + "?r=" + Date.now(), { cache: "no-store" }); if (!r.ok) throw 0; }   // בדיקה אמיתית: onLine מחזיר true גם ב-Wi-Fi בלי אינטרנט
+  catch (e) { toast("אין חיבור לאינטרנט - הריענון בוטל, האפליקציה נשארת כמו שהיא"); return; }
   toast("מרענן לגרסה החדשה…");
   try {
     if (navigator.serviceWorker) { const regs = await navigator.serviceWorker.getRegistrations(); await Promise.all(regs.map(r => r.unregister())); }
@@ -283,9 +286,171 @@ async function hardRefresh() {                                      // מוחק 
   } catch (e) {}
   location.replace(location.pathname + "?r=" + Date.now() + location.hash);
 }
+/* ---------- הודעת "יש גרסה חדשה" ---------- */
+let verDismissed = "", verChecked = 0;
+async function checkNewVersion(force) {
+  if (!force && Date.now() - verChecked < 60000) return; verChecked = Date.now();
+  if (!navigator.onLine) return;
+  try {
+    const r = await fetch("app.js", { cache: "no-store" }); if (!r.ok) return;
+    const m = /APP_VERSION\s*=\s*"([^"]+)"/.exec(await r.text());
+    if (m && m[1] !== APP_VERSION && m[1] !== verDismissed) showNewVer(m[1]);
+  } catch (e) {}
+}
+function showNewVer(v) {
+  if ($("#newver")) return;
+  const d = document.createElement("div"); d.id = "newver"; d.className = "newver"; d.setAttribute("role", "status"); d.dataset.v = v;
+  d.innerHTML = '<span>יש גרסה חדשה של האפליקציה</span><button class="nvu" data-newver-update>עדכנו עכשיו</button><button class="nvx" data-newver-later aria-label="סגירה">✕</button>';
+  document.body.appendChild(d);
+}
+
+/* ---------- קריאה אופליין בלחיצה אחת ---------- */
+const OFF_KEY = "shnayimMikra.offline";
+const offStatus = () => { try { const d = localStorage.getItem(OFF_KEY); return d ? "✓ הורד בתאריך " + d + ". אפשר ללמוד בלי אינטרנט." : "מוריד את כל התורה והפירוש למכשיר, כדי ללמוד גם בלי קליטה (נסיעה, שבת)."; } catch (e) { return ""; } };
+async function offlineDownload() {
+  if (!window.caches) { toast("הדפדפן לא תומך בשמירה לקריאה אופליין"); return; }
+  const btn = $("[data-offline]"); if (btn) btn.disabled = true;
+  const files = B.map((_, i) => ["tx/" + i + ".json?v=" + DATA_V, "rashi/" + i + ".json?v=" + DATA_V]).flat(); let done = 0, fail = 0;
+  const say = t => { const e = $("#offst"); if (e) e.textContent = t; };
+  const cacheName = async () => { const ks = (await caches.keys()).filter(k => k.startsWith("shnayim-mikra-")).sort((a, b) => (parseInt(b.split("-v")[1]) || 0) - (parseInt(a.split("-v")[1]) || 0)); return ks[0] || "shnayim-mikra-offline"; };
+  say("מוריד… 0 מתוך " + files.length);
+  const q = files.slice();
+  const worker = async () => {
+    while (q.length) {
+      const u = q.shift();
+      try {
+        if (!(await caches.match(u))) {
+          const r = await fetch(u, { cache: "no-store" });
+          if (!r.ok) throw 0;
+          if (!(await caches.match(u))) { const c = await caches.open(await cacheName()); await c.put(u, r.clone()); }
+        }
+      } catch (e) { fail++; }
+      done++; say("מוריד… " + done + " מתוך " + files.length);
+    }
+  };
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  if (btn) btn.disabled = false;
+  if (fail) { say("ההורדה לא הושלמה (" + fail + " קבצים נכשלו). בדקו חיבור ונסו שוב."); toast("ההורדה לא הושלמה, נסו שוב"); return; }
+  try { localStorage.setItem(OFF_KEY, new Date().toLocaleDateString("he-IL")); } catch (e) {}
+  say(offStatus()); toast("✓ הכול הורד, אפשר ללמוד בלי אינטרנט");
+}
+
+/* ---------- חיפוש חופשי ---------- */
+const SQ = { q: "", scope: "t", full: false, part: false, bk: "", shown: 100, scroll: 0 };
+const NWD = {}, PRE = "ובהכלמש";
+const nw = s => s.replace(NIK, "").replace(/[־\-]/g, " ").replace(/[^א-ת\s]/g, "").replace(/\s+/g, " ").trim();
+const sk = s => s.replace(/[וי]/g, "");
+const escH = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const TAAM = /[֑-֯]/g;
+const rsText = x => (Array.isArray(x) ? x.join(" ") : x || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+const srcStr = (b, c, v, scope) => scope === "t" ? TX[b][c][v][0].replace(/\n/g, " ") : scope === "g" ? TX[b][c][v][1] : rsText(RS[b][c][v]);
+async function loadAllData(scope, onProg) {
+  const jobs = [];
+  B.forEach((_, i) => { if (!TX[i]) jobs.push(["tx", i]); if (scope === "r" && !RS[i]) jobs.push(["rashi", i]); });
+  const total = jobs.length; let n = 0, fail = 0;
+  const w = async () => { while (jobs.length) { const [k, i] = jobs.shift(); try { const r = await fetch(k + "/" + i + ".json?v=" + DATA_V); if (!r.ok) throw 0; const j = await r.json(); if (k === "tx") TX[i] = j; else RS[i] = j; } catch (e) { fail++; } n++; if (onProg) onProg(n, total); } };
+  await Promise.all([w(), w(), w(), w()]);
+  return fail === 0;
+}
+const wordsOf = (b, scope) => { const k = b + scope; return NWD[k] || (NWD[k] = (scope === "r" ? RS[b] : TX[b]).map((ch, c) => ch.map((_, v) => nw(srcStr(b, c, v, scope)).split(" ")))); };
+function variants(q) {                                    // כתיב מלא/חסר: הוספה או הסרה של ו/י אחת
+  const s = new Set([q]);
+  for (let i = 0; i < q.length; i++) if ("וי".includes(q[i])) { const r = q.slice(0, i) + q.slice(i + 1); if (r.length >= 3) s.add(r); }
+  for (let i = 1; i < q.length; i++) { s.add(q.slice(0, i) + "ו" + q.slice(i)); s.add(q.slice(0, i) + "י" + q.slice(i)); }
+  return s;
+}
+function mkMatch(q, full) {
+  const bases = [q]; if ("ובהכלמ".includes(q[0]) && q.length >= 5 || ("וה".includes(q[0]) && q.length >= 4)) bases.push(q.slice(1));   // בהיותם -> גם היותם
+  const set = new Set(); for (const x of bases) (full ? variants(x) : [x]).forEach(y => set.add(y)); const nd = [...set];
+  if (SQ.part) return w => nd.some(n => w.includes(n));
+  return w => { for (let i = 0; i <= 2; i++) { if (i > 0 && !PRE.includes(w[i - 1])) break; const x = w.slice(i); if (x.length < 2) break; if (set.has(x)) return true; } return false; };
+}
+function locate(b, c, v) {                                // באיזו פרשה ובאיזו עלייה נמצא הפסוק
+  const st = [b, c, v];
+  for (let i = 0; i < P.length; i++) for (let k = 0; k < 7; k++) { const r = P[i].r[k]; if (cmpT(st, [r[0], r[1], r[2]]) >= 0 && cmpT(st, [r[0], r[3], r[4]]) <= 0) return { p: i, a: k }; }
+  return null;
+}
+function searchView() {
+  const bopts = '<option value="">כל התורה</option>' + B.map((x, i) => `<option value="${i}" ${String(SQ.bk) === String(i) ? "selected" : ""}>${x.n}</option>`).join("");
+  const sopts = [["t", "במקרא"], ["g", "בתרגום אונקלוס"], ["r", "בפירוש רש״י"]].map(([k, n]) => `<option value="${k}" ${SQ.scope === k ? "selected" : ""}>${n}</option>`).join("");
+  return `<header class="rh" style="margin-bottom:12px"><button class="home" data-go="day">${I.home}<span>חזרה לדף הבית</span></button><div class="rt">חיפוש</div></header>
+  <input id="sq" class="sq" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" placeholder="חפשו מילה או ביטוי (בלי ניקוד)" aria-label="חיפוש" value="${escH(SQ.q)}">
+  <div class="sopts"><select id="ssc" aria-label="איפה לחפש">${sopts}</select><select id="sbk" aria-label="היקף החיפוש">${bopts}</select></div>
+  <div class="sopts"><label><input type="checkbox" id="sfull" ${SQ.full ? "checked" : ""}> כולל כתיב מלא/חסר (דוד ↔ דויד)</label><label><input type="checkbox" id="spart" ${SQ.part ? "checked" : ""}> גם חלק ממילה</label></div>
+  <div id="sres" aria-live="polite"></div>${footer(false)}${tabs()}`;
+}
+function searchInit() {
+  window.scrollTo(0, 0);
+  if (SQ.q) { runSearch(); if (SQ.scroll) { const y = SQ.scroll; SQ.scroll = 0; setTimeout(() => window.scrollTo(0, y), 30); } }
+  else { const i = $("#sq"); if (i && !/iphone|ipad|ipod/i.test(navigator.userAgent)) i.focus(); $("#sres").innerHTML = `<div class="ssum" style="font-weight:600">מחפשים בכל חמשת חומשי התורה. אפשר לחפש מילה או כמה מילים, בלי ניקוד וטעמים, במקרא, בתרגום אונקלוס או בפירוש רש״י.</div>`; }
+}
+let sTimer = 0;
+function runSearch() {
+  const box = $("#sres"); if (!box) return;
+  const qn = nw(SQ.q), words = qn.split(" ").filter(Boolean);
+  if (qn.replace(/ /g, "").length < 2) { box.innerHTML = `<div class="ssum" style="font-weight:600">${SQ.q ? "כתבו לפחות שתי אותיות." : ""}</div>`; return; }
+  const scope = SQ.scope;
+  if (B.some((_, i) => !TX[i] || (scope === "r" && !RS[i]))) {
+    box.innerHTML = `<div class="ssum" id="sload">טוען את הטקסט לחיפוש…</div>`;
+    const my = SQ.q + scope;
+    loadAllData(scope, (n, t) => { const e = $("#sload"); if (e) e.textContent = `טוען את הטקסט לחיפוש… ${n} מתוך ${t}`; }).then(ok => {
+      if (route.v !== "search" || SQ.q + SQ.scope !== my) return;
+      if (!ok) { const e = $("#sres"); if (e) e.innerHTML = `<div class="ssum">לא כל הטקסט נטען. בדקו חיבור (או הורידו לקריאה אופליין מתחתית הדף) ונסו שוב.</div>`; return; }
+      runSearch();
+    });
+    return;
+  }
+  const bks = SQ.bk === "" ? B.map((_, i) => i) : [+SQ.bk];
+  const find = full => {
+    const ms = words.map(w => mkMatch(w, full)), out = [];
+    for (const b of bks) {
+      const W = wordsOf(b, scope);
+      for (let c = 0; c < W.length; c++) for (let v = 0; v < W[c].length; v++) {
+        const ws = W[c][v]; let ok = true;
+        for (let k = 0; k < ms.length; k++) { if (!ws.some(ms[k])) { ok = false; break; } }
+        if (ok) out.push([b, c, v]);
+      }
+    }
+    return { out, ms };
+  };
+  const r = find(SQ.full); SQ.hits = r.out; SQ.words = words; SQ.ms = r.ms;
+  SQ.extra = SQ.full ? 0 : Math.max(0, find(true).out.length - r.out.length);   // כמה תוצאות נוספות יש בכתיב מלא/חסר
+  drawResults();
+}
+function hiText(raw, scope) {
+  const ms = SQ.ms; let toks = raw.split(/(\s+)/);
+  if (scope === "r") {                                    // פירוש רש״י ארוך: מציגים רק חלון סביב המילה שנמצאה
+    const ws = toks.filter(x => x.trim()); let at = ws.findIndex(t => nw(t).split(" ").some(w => ms.some(m => m(w))));
+    if (at < 0) at = 0; const from = Math.max(0, at - 12), to = Math.min(ws.length, at + 28);
+    toks = (from > 0 ? ["… "] : []).concat(ws.slice(from, to).flatMap(t => [t, " "])).concat(to < ws.length ? ["…"] : []);
+  }
+  return toks.map(tok => {
+    if (!tok.trim() || tok === "…" || tok === "… ") return escH(tok);
+    const ws = nw(tok).split(" ").filter(Boolean);
+    return ms.some(m => ws.some(m)) ? `<mark class="hit">${escH(tok)}</mark>` : escH(tok);
+  }).join("");
+}
+function drawResults() {
+  const box = $("#sres"); if (!box) return; const hits = SQ.hits || [], scope = SQ.scope;
+  const more = SQ.extra ? `<button class="smore" data-sfull style="margin:6px 0 10px">הצג גם ${SQ.extra} תוצאות בכתיב מלא/חסר</button>` : "";
+  if (!hits.length) { box.innerHTML = `<div class="ssum">לא נמצאו תוצאות ל״${escH(SQ.q.trim())}״ בכתיב הזה.</div>${more}<div class="ssum" style="font-weight:600">אפשר לנסות פחות מילים או לסמן ״גם חלק ממילה״.</div>`; return; }
+  const show = hits.slice(0, SQ.shown);
+  box.innerHTML = `<div class="ssum">${hits.length} תוצאות${SQ.bk === "" ? "" : " ב" + B[+SQ.bk].n}${hits.length > show.length ? " (מוצגות " + show.length + ")" : ""}</div>` + more +
+    show.map(([b, c, v]) => `<button class="sres" data-sr="${b}:${c}:${v}"><div class="sref">${B[b].n} ${gem(c + 1)} · פסוק ${gem(v + 1)}</div><div class="stx ${scope === "g" ? "sg" : scope === "r" ? "sr" : ""}">${hiText(scope === "t" ? srcStr(b, c, v, "t").replace(TAAM, "") : srcStr(b, c, v, scope), scope)}</div></button>`).join("") +
+    (hits.length > show.length ? `<button class="smore" data-smore>הצג עוד</button>` : "");
+}
+document.addEventListener("input", e => {
+  if (e.target.id === "sq") { SQ.q = e.target.value; SQ.shown = 100; clearTimeout(sTimer); sTimer = setTimeout(runSearch, 250); }
+});
+document.addEventListener("change", e => {
+  if (e.target.id === "sbk") { SQ.bk = e.target.value; SQ.shown = 100; runSearch(); }
+  else if (e.target.id === "ssc") { SQ.scope = e.target.value; SQ.shown = 100; runSearch(); }
+  else if (e.target.id === "sfull") { SQ.full = e.target.checked; SQ.shown = 100; runSearch(); }
+  else if (e.target.id === "spart") { SQ.part = e.target.checked; SQ.shown = 100; runSearch(); }
+});
 const MAM_SRC = "https://he.wikisource.org/wiki/%D7%9E%D7%A9%D7%AA%D7%9E%D7%A9:Dovi/%D7%9E%D7%A7%D7%A8%D7%90_%D7%A2%D7%9C_%D7%A4%D7%99_%D7%94%D7%9E%D7%A1%D7%95%D7%A8%D7%94";
 function footer(src) {
-  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div><div class="ver">גרסה ${APP_VERSION}</div><button class="refbtn" data-refresh>🔄 ריענון לגירסה חדשה</button><div class="vernote">הריענון מוריד את הגרסה העדכנית. ההתקדמות והסימניות שלך נשמרות.</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. שמע: קישורי חיפוש ביוטיוב (נוסח ספרדי ירושלמי). נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד, מתוך חומש שפתי חכמים (הוצאת מצודה, 2009), ברישיון CC-BY-NC, באמצעות ספריא. המילים הצבועות בתרגום מסומנות במהדורה זו כמקומות שבהם אונקלוס מפרש ולא מתרגם. בתצוגה זו הוסרו נוסחאות חלופיות והסוגריים. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
+  return `<footer class="ft"><div class="cp">© רפאל בטיט · כל הזכויות שמורות על עיצוב ופיתוח האפליקציה</div><div class="ver">גרסה ${APP_VERSION}</div><button class="refbtn" data-refresh>🔄 ריענון לגירסה חדשה</button><div class="vernote">הריענון מוריד את הגרסה העדכנית. ההתקדמות והסימניות שלך נשמרות.</div><button class="offbtn" data-offline>📥 הורדה ללימוד אופליין</button><div class="vernote" id="offst">${offStatus()}</div>${src ? `<div class="src">פירוש רש״י (נוסח מנוקד, Rosenbaum-Silbermann 1929–1934, נחלת הכלל) באמצעות ספריא. שמע: קישורי חיפוש ביוטיוב (נוסח ספרדי ירושלמי). נוסח המקרא: <a href="${MAM_SRC}" target="_blank" rel="noopener">מקרא על פי המסורה (MAM)</a>, ברישיון CC-BY-SA, באמצעות ספריא. בתצוגה זו הוצג הקרי בלבד במקום כתיב וקרי, והוסרו סימוני פתוחות וסתומות. תרגום אונקלוס מנוקד, מתוך חומש שפתי חכמים (הוצאת מצודה, 2009), ברישיון CC-BY-NC, באמצעות ספריא. המילים הצבועות בתרגום מסומנות במהדורה זו כמקומות שבהם אונקלוס מפרש ולא מתרגם. בתצוגה זו הוסרו נוסחאות חלופיות והסוגריים. חלוקת העליות ולוח הפרשיות (לפי מנהג ארץ ישראל): <a href="https://www.hebcal.com/" target="_blank" rel="noopener">Hebcal</a>.</div>` : ""}</footer>`;
 }
 function coverage() {                                              // פסוקים שנלמדו (איחוד כל העליות שסומנו), לפי ספר
   const seen = B.map(() => new Set());
@@ -296,8 +461,8 @@ function coverage() {                                              // פסוקי
   return { tot, got, all, g, pct: Math.round(g / all * 100) };
 }
 function tabs() {
-  const on = route.v === "progress" ? "p" : route.v === "books" || route.v === "par" ? "b" : "d", pct = coverage().pct;
-  return `<nav class="tabs"><button class="hl" data-go="progress" ${on === "p" ? 'aria-current="page"' : ""}><i>${pct}%</i>${I.chart}<span>התקדמות שלי</span></button><button class="${on === "d" ? "on" : ""}" data-go="day">${I.home}<span>השבוע</span></button><button class="${on === "b" ? "on" : ""}" data-go="books">${I.book}<span>חלוקה לספרים</span></button></nav>`;
+  const on = route.v === "progress" ? "p" : route.v === "books" || route.v === "par" ? "b" : route.v === "search" ? "s" : "d", pct = coverage().pct;
+  return `<nav class="tabs"><button class="hl" data-go="progress" ${on === "p" ? 'aria-current="page"' : ""}><i>${pct}%</i>${I.chart}<span>התקדמות שלי</span></button><button class="${on === "d" ? "on" : ""}" data-go="day">${I.home}<span>השבוע</span></button><button class="${on === "b" ? "on" : ""}" data-go="books">${I.book}<span>חלוקה לספרים</span></button><button class="${on === "s" ? "on" : ""}" data-go="search" ${on === "s" ? 'aria-current="page"' : ""}>${I.search}<span>חיפוש</span></button></nav>`;
 }
 function weekStrip(d, w, isToday) {
   const td = iso(today()); let cells = "";
@@ -422,8 +587,13 @@ function readView() {
 }
 function render() {
   const sy = window.scrollY, app = $("#app");
-  app.innerHTML = route.v === "read" ? readView() : route.v === "books" ? booksView() : route.v === "progress" ? progressView() : route.v === "par" ? parView() : dayView();
-  const el = route.v === "read" && !route.keep ? $("#bmline") : null;
+  app.innerHTML = route.v === "read" ? readView() : route.v === "books" ? booksView() : route.v === "progress" ? progressView() : route.v === "par" ? parView() : route.v === "search" ? searchView() : dayView();
+  const el = route.v === "read" && !route.keep && !route.scrollTo ? $("#bmline") : null;
+  if (route.v === "search") { searchInit(); route.keep = false; return; }
+  if (route.v === "read" && route.scrollTo) {                      // הגעה מתוצאת חיפוש: גוללים לפסוק (אחרי שהטקסט נטען)
+    const t = $("#v" + route.scrollTo.c + "_" + route.scrollTo.v);
+    if (t) { t.scrollIntoView({ block: "center" }); t.classList.remove("pulse"); void t.offsetWidth; t.classList.add("pulse"); route.scrollTo = null; route.keep = false; return; }
+  }
   if (el) { const vs = $(".vs.bm"); (vs || el).scrollIntoView({ block: "center" }); if (vs) { vs.classList.remove("pulse"); void vs.offsetWidth; vs.classList.add("pulse"); } }
   else if (route.keep) window.scrollTo(0, sy); else window.scrollTo(0, 0);
   route.keep = false;
@@ -508,7 +678,7 @@ function toggleDone(w, a) {
 }
 document.addEventListener("click", e => {
   if (e.target.id === "ov") return closeSheet();
-  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-rsretry],[data-cycleundo],[data-play],[data-pclose],[data-pspd],[data-rate],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
+  const t = e.target.closest("[data-go],[data-go-par],[data-r],[data-par],[data-toggle],[data-day],[data-week],[data-sunset],[data-today],[data-fs],[data-set],[data-sw],[data-th],[data-close],[data-next],[data-prev],[data-home],[data-retry],[data-rsretry],[data-cycleundo],[data-play],[data-pclose],[data-pspd],[data-rate],[data-mode],[data-share],[data-installhelp],[data-refresh],[data-offline],[data-newver-update],[data-newver-later],[data-bkdo],[data-sr],[data-smore],[data-sfull],[data-pd],[data-bookall],[data-bk],[data-p],[data-undo],[data-bm],[data-bmclear],[data-hint]");
   if (!t) return;
   const D = t.dataset;
   if (t.hasAttribute("data-close")) closeSheet();
@@ -532,6 +702,13 @@ document.addEventListener("click", e => {
   else if (D.share) shareApp(D.share);
   else if (t.hasAttribute("data-installhelp")) openSheet(installHelpHTML());
   else if (t.hasAttribute("data-refresh")) hardRefresh();
+  else if (t.hasAttribute("data-offline")) offlineDownload();
+  else if (t.hasAttribute("data-newver-update")) hardRefresh();
+  else if (t.hasAttribute("data-newver-later")) { const b = $("#newver"); if (b) { verDismissed = b.dataset.v; b.remove(); } }
+  else if (t.hasAttribute("data-bkdo")) { const c = ($("#bkcode").value || "").trim(); if (!c) return; closeSheet(); try { applyBackup(fromCode(c)); } catch (er) { toast("הקוד לא תקין"); } }
+  else if (t.hasAttribute("data-smore")) { SQ.shown += 100; drawResults(); }
+  else if (t.hasAttribute("data-sfull")) { SQ.full = true; SQ.shown = 100; const cb = $("#sfull"); if (cb) cb.checked = true; runSearch(); }
+  else if (D.sr) { const [b, c, v] = D.sr.split(":").map(Number), loc = locate(b, c + 1, v + 1); if (!loc) return toast("לא נמצאה עלייה לפסוק הזה"); SQ.scroll = window.scrollY; go({ v: "read", p: loc.p, a: loc.a, scrollTo: { c: c + 1, v: v + 1 } }); }
   else if (D.pd != null) { const i = +D.pd; delete S.pdAuto[i]; if (S.pd[i]) delete S.pd[i]; else { S.pd[i] = 1; toast("הפרשה סומנה כנלמדה ✓"); } save(); checkCycle(); route.keep = true; render(); }
   else if (t.hasAttribute("data-cycleundo")) { if (lastCycle) { Object.assign(S, lastCycle); lastCycle = null; save(); closeSheet(); toast("ההתקדמות הוחזרה"); route.keep = true; render(); } }
   else if (D.bookall != null) {
@@ -566,13 +743,23 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") closeSheet();
+  if (e.key === "Tab" && $("#ov").classList.contains("show")) {   // מלכודת פוקוס: Tab לא יוצא מהחלונית לשורת הכתובת של הדפדפן
+    const sh = $("#sheet"), fs = [...sh.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x => x.offsetParent !== null || x === document.activeElement);
+    if (!fs.length) { e.preventDefault(); sh.focus(); }
+    else {
+      const first = fs[0], last = fs[fs.length - 1], ae = document.activeElement;
+      if (!sh.contains(ae) || ae === sh) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+      else if (e.shiftKey && ae === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && ae === last) { e.preventDefault(); first.focus(); }
+    }
+  }
   if ((e.key === "Enter" || e.key === " ") && e.target.getAttribute && e.target.getAttribute("role") === "button") { e.preventDefault(); e.target.click(); }
 });
 window.addEventListener("online", () => { for (const k in rsFail) delete rsFail[k]; rsToasted = false; if (route.v === "read") { route.keep = true; render(); } });
 /* ---------- גיבוי ושחזור ---------- */
 const bkData = () => ({ app: "shnayim-mikra", v: 1, done: S.done, pd: S.pd, cups: S.cups, bm: S.bm });
 const toCode = o => { const b = new TextEncoder().encode(JSON.stringify(o)); let s = ""; for (let i = 0; i < b.length; i += 8192) s += String.fromCharCode.apply(null, b.subarray(i, i + 8192)); return btoa(s); };
-const fromCode = c => JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(c), ch => ch.charCodeAt(0))));
+const fromCode = c => { if (c.length > 200000) throw 0; return JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(c), ch => ch.charCodeAt(0)))); };
 function applyBackup(o) {
   if (!o || o.app !== "shnayim-mikra" || !o.done || typeof o.done !== "object" || Array.isArray(o.done)) throw 0;
   if (!confirm("השחזור יחליף את ההתקדמות, הסימניה וסיומי התורה שבמכשיר בנתוני הגיבוי. להמשיך?")) return;
@@ -595,15 +782,15 @@ function backup(kind) {
     const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
   } else if (kind === "restore") {
-    const c = prompt("הדבק כאן את קוד הגיבוי:"); if (!c) return;
-    try { applyBackup(fromCode(c.trim())); } catch (e) { toast("הקוד לא תקין"); }
+    openSheet(`<button class="x" data-close aria-label="סגור">✕</button><h3 class="sh" style="margin-top:4px">שחזור מקוד</h3><p style="margin:0 0 8px;color:var(--mute);font-size:14px">הדביקו כאן את קוד הגיבוי ולחצו ״שחזר״.</p><textarea id="bkcode" dir="ltr" rows="5" style="width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:14px;background:var(--bg);color:var(--ink)"></textarea><div class="nav"><button class="p" data-bkdo>שחזר</button></div>`);
+    setTimeout(() => { const t = $("#bkcode"); if (t) t.focus(); }, 50);
   } else if (kind === "load") $("#bkf").click();
 }
 document.addEventListener("change", e => {
   const nv = e.target.dataset && e.target.dataset.nav;
   if (nv === "book") { navBook = e.target.value; route.keep = true; render(); return; }
   if (nv === "par") { if (e.target.value !== "") go({ v: "par", p: +e.target.value }); return; }
-  if (e.target.id === "bkf" && e.target.files[0]) { const r = new FileReader(); r.onload = () => { try { applyBackup(JSON.parse(r.result)); } catch (x) { toast("הקובץ לא תקין"); } }; r.readAsText(e.target.files[0]); e.target.value = ""; return; }
+  if (e.target.id === "bkf" && e.target.files[0]) { const r = new FileReader(); r.onload = () => { try { if (r.result.length > 400000) throw 0; applyBackup(JSON.parse(r.result)); } catch (x) { toast("הקובץ לא תקין"); } }; r.readAsText(e.target.files[0]); e.target.value = ""; return; }
   if (e.target.id === "jd") {
     const v = e.target.value; if (!/^\d{4}-\d\d-\d\d$/.test(v)) return;
     if (!SCH[shabOf(parseISO(v))]) return toast("אין נתוני לוח לתאריך הזה");
@@ -620,9 +807,10 @@ let hiddenAt = 0;
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
   if (hiddenAt && Date.now() - hiddenAt > 3 * 3600e3 && route.v === "day" && route.date !== iso(today())) go({ v: "day", date: iso(today()) }, true);
-  checkDayRoll();
+  checkDayRoll(); checkNewVersion();
 });
 window.addEventListener("pageshow", checkDayRoll); window.addEventListener("focus", checkDayRoll);
 setInterval(checkDayRoll, 30000);
+setInterval(checkNewVersion, 30 * 60000); setTimeout(checkNewVersion, 5000);
 fromHash();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(err => console.error("SW registration failed:", err));
