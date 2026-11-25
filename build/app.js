@@ -274,7 +274,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.25 (v17)";
+const APP_VERSION = "2026.11.25 (v18)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   toast("בודק חיבור…");
   try { const r = await fetch(location.pathname + "?r=" + Date.now(), { cache: "no-store" }); if (!r.ok) throw 0; }   // בדיקה אמיתית: onLine מחזיר true גם ב-Wi-Fi בלי אינטרנט
@@ -359,11 +359,17 @@ function variants(q) {                                    // כתיב מלא/ח�
   for (let i = 1; i < q.length; i++) { s.add(q.slice(0, i) + "ו" + q.slice(i)); s.add(q.slice(0, i) + "י" + q.slice(i)); }
   return s;
 }
+function seqOK(ws, ms) {                                  // כמה מילים בחיפוש: לפי הסדר, ולא יותר משתי מילים ביניהן (אשרי האיש, משה ואהרן)
+  const rec = (k, from) => { if (k === ms.length) return true; const to = k === 0 ? ws.length : Math.min(ws.length, from + 3); for (let j = from; j < to; j++) if (ms[k](ws[j]) && rec(k + 1, j + 1)) return true; return false; };
+  return rec(0, 0);
+}
 function mkMatch(q, full) {
-  const bases = [q]; if ("ובהכלמ".includes(q[0]) && q.length >= 5 || ("וה".includes(q[0]) && q.length >= 4)) bases.push(q.slice(1));   // בהיותם -> גם היותם
-  const set = new Set(); for (const x of bases) (full ? variants(x) : [x]).forEach(y => set.add(y)); const nd = [...set];
+  const set = new Set(), bare = new Set(), mk = x => full ? variants(x) : [x];
+  mk(q).forEach(y => set.add(y));                         // המילה כפי שנכתבה, עם אותיות שימוש אפשריות לפניה
+  if ("ובהכלמ".includes(q[0]) && q.length >= 5 || ("וה".includes(q[0]) && q.length >= 4)) mk(q.slice(1)).forEach(y => bare.add(y));   // בהיותם -> גם היותם (רק חשופה, בלי אות שימוש נוספת)
+  const nd = [...set, ...bare];
   if (SQ.part) return w => nd.some(n => w.includes(n));
-  return w => { for (let i = 0; i <= 2; i++) { if (i > 0 && !PRE.includes(w[i - 1])) break; const x = w.slice(i); if (x.length < 2) break; if (set.has(x)) return true; } return false; };
+  return w => { if (bare.has(w)) return true; for (let i = 0; i <= 2; i++) { if (i > 0 && !PRE.includes(w[i - 1])) break; const x = w.slice(i); if (x.length < 2) break; if (set.has(x)) return true; } return false; };
 }
 function locate(b, c, v) {                                // באיזו פרשה ובאיזו עלייה נמצא הפסוק
   const st = [b, c, v];
@@ -407,7 +413,7 @@ function runSearch() {
       const W = wordsOf(b, scope);
       for (let c = 0; c < W.length; c++) for (let v = 0; v < W[c].length; v++) {
         const ws = W[c][v]; let ok = true;
-        for (let k = 0; k < ms.length; k++) { if (!ws.some(ms[k])) { ok = false; break; } }
+        ok = seqOK(ws, ms);
         if (ok) out.push([b, c, v]);
       }
     }

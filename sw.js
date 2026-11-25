@@ -1,4 +1,4 @@
-const CACHE = "shnayim-mikra-v17";
+const CACHE = "shnayim-mikra-v18";
 const CORE = ["./", "index.html", "meta.js", "sched.js", "nk.js", "app.js", "font-tx5.woff2", "font-ui.woff2", "font-nk5-s.woff2", "font-nk5-d.woff2", "font-nk5-sd.woff2", "font-nk5-q.woff2", "font-nk5-dq.woff2", "logo.png", "manifest.webmanifest", "icon-v3-192.png", "icon-v3-512.png", "icon-v3-180.png"];
 const DATA_V = "20261027b";   // כמו ב-index.html
 const TXT = [0, 1, 2, 3, 4].map(i => ["tx/" + i + ".json?v=" + DATA_V, "rashi/" + i + ".json?v=" + DATA_V]).flat();
