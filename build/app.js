@@ -274,7 +274,7 @@ const installHelpHTML = () => `<button class="x" data-close aria-label="סגור
 <ol class="help-steps"><li>בהודעה לחצו על <b>״פרטים נוספים״</b> ואז על <b>״התקן בכל זאת״</b>.</li>
 <li>אם אין כפתור כזה: ב-Chrome פתחו את התפריט ⋮ ובחרו <b>״הוסף למסך הבית״</b>, ואז <b>״צור קיצור דרך״</b> (לא ״התקן״). האייקון יופיע במסך הבית ויעבוד כרגיל.</li>
 <li>או פשוט המשיכו להשתמש באתר דרך הדפדפן, בלי להתקין.</li></ol>`;
-const APP_VERSION = "2026.11.25 (v15)";
+const APP_VERSION = "2026.11.25 (v16)";
 async function hardRefresh() {                                      // מוחק רק את קבצי האפליקציה השמורים (מטמון), לא את ההתקדמות
   toast("בודק חיבור…");
   try { const r = await fetch(location.pathname + "?r=" + Date.now(), { cache: "no-store" }); if (!r.ok) throw 0; }   // בדיקה אמיתית: onLine מחזיר true גם ב-Wi-Fi בלי אינטרנט
@@ -717,7 +717,7 @@ document.addEventListener("click", e => {
     save(); checkCycle(); toast(full ? "הסימון של " + B[b].n + " בוטל" : B[b].n + " סומן כנלמד ✓"); route.keep = true; render();
   }
   else if (D.bk) backup(D.bk);
-  else if (D.go) go(D.go === "day" ? { v: "day", date: iso(today()) } : D.go === "books" ? { v: "books" } : D.go === "progress" ? { v: "progress" } : { v: "day", date: iso(today()) });
+  else if (D.go) go(D.go === "day" ? { v: "day", date: iso(today()) } : D.go === "books" ? { v: "books" } : D.go === "progress" ? { v: "progress" } : D.go === "search" ? { v: "search" } : { v: "day", date: iso(today()) });
   else if (D.par != null) go({ v: "par", p: +D.par });
   else if (t.hasAttribute("data-undo")) { if (lastBm) { S.bm = lastBm; lastBm = null; save(); $("#toast").classList.remove("show"); if (route.v === "read") route.resume = null; route.keep = true; render(); } }
   else if (D.r) {
